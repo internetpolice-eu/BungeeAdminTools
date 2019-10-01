@@ -5,6 +5,9 @@
 	<artifactId>bungeeadmintools</artifactId>
 	<name>BungeeAdminTools</name>
 
+	<description>Bungee plugin which handles ban, mute and kick management</description>
+	<version>1.5.4-SNAPSHOT</version>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -17,6 +20,10 @@
 		<repository>
 			<id>md-5-repo</id>
 			<url>http://repo.md-5.net/content/groups/public/</url>
+		</repository>
+		<repository> <!-- BungeePerms -->
+			<id>internetpolice.eu</id>
+			<url>https://maven.internetpolice.eu/</url>
 		</repository>
 	</repositories>
 
@@ -37,15 +44,13 @@
 			<groupId>BungeePerms</groupId>
 			<artifactId>BungeePermsv2</artifactId>
 			<version>2.3.0</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/lib/BungeePerms-2.3.0.jar</systemPath>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>BungeePerms</groupId>
 			<artifactId>BungeePermsv3</artifactId>
-			<version>2.3.0</version>
-			<scope>system</scope>
-			<systemPath>${basedir}/lib/BungeePerms-3.0-alpha-1.jar</systemPath>
+			<version>3.0-alpha-1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -110,16 +115,16 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.0</version>
+				<version>3.8.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.2</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -137,6 +142,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<description>Bungee plugin which handles ban, mute and kick management</description>
-	<version>1.5.3-premium</version>
 </project>
