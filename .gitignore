@@ -1,8 +1,38 @@
-/target
+# Eclipse stuff
+/.classpath
+/.project
 /.settings
-build-BAT.bat
-build_move-BAT.bat
-.project
-.classpath
-.idea/
+
+# netbeans
+/nbproject
+
+# we use maven!
+/build.xml
+
+# maven
+/target
+
+# vim
+.*.sw[a-p]
+
+# various other potential build files
+/build
+/bin
+/dist
+/manifest.mf
+
+# Mac filesystem dust
+/.DS_Store
+
+# intellij
 *.iml
+*.ipr
+*.iws
+.idea/
+
+*.DS_Store
+
+dependency-reduced-pom.xml
+
+# To be sure:
+deploy_rsa
