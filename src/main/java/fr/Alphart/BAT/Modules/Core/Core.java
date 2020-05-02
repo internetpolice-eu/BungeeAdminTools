@@ -32,8 +32,6 @@ import fr.Alphart.BAT.Modules.ModuleConfiguration;
 import fr.Alphart.BAT.Utils.EnhancedDateFormat;
 import fr.Alphart.BAT.Utils.UUIDNotFoundException;
 import fr.Alphart.BAT.Utils.Utils;
-import fr.Alphart.BAT.Utils.thirdparty.BPInterfaceFactory;
-import fr.Alphart.BAT.Utils.thirdparty.BPInterfaceFactory.PermissionProvider;
 import fr.Alphart.BAT.Utils.thirdparty.MojangAPIProvider;
 import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
@@ -86,7 +84,6 @@ public class Core implements IModule, Listener {
 	private final String name = "core";
 	private List<BATCommand> cmds;
 	private Gson gson = new Gson();
-	private static PermissionProvider bungeePerms;
 	public static EnhancedDateFormat defaultDF = new EnhancedDateFormat(false);
 
 	@Override
@@ -122,11 +119,6 @@ public class Core implements IModule, Listener {
 		// Register commands
 		cmds = new ArrayList<>();
 		cmds.add(new CoreCommand(this)); // Most of the job is done in the constructor of CoreCommand
-		
-		// Try to hook into BungeePerms
-		if(ProxyServer.getInstance().getPluginManager().getPlugin("BungeePerms") != null){
-			bungeePerms = BPInterfaceFactory.getBPInterface(ProxyServer.getInstance().getPluginManager().getPlugin("BungeePerms"));
-		}
 		
 		// Update the date format (if translation has been changed)
 		defaultDF = new EnhancedDateFormat(BAT.getInstance().getConfiguration().isLitteralDate());
@@ -269,19 +261,9 @@ public class Core implements IModule, Listener {
 	 * @param sender
 	 * @return permission in a collection of strings
 	 */
+	@Deprecated
 	public static Collection<String> getCommandSenderPermission(final CommandSender sender){
-		if(bungeePerms != null){
-			if(sender.equals(ProxyServer.getInstance().getConsole())){
-				return sender.getPermissions();	
-			}
-			try{
-				return bungeePerms.getPermissions(sender);
-			}catch(final NullPointerException e){
-				return new ArrayList<String>();
-			}
-		}else{
-			return sender.getPermissions();	
-		}
+        return sender.getPermissions();
 	}
 	
 	public static boolean isOnlineMode(){
