@@ -1,6 +1,5 @@
 package fr.Alphart.BAT.Modules.Core;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,8 +34,6 @@ import fr.Alphart.BAT.Utils.UUIDNotFoundException;
 import fr.Alphart.BAT.Utils.Utils;
 import fr.Alphart.BAT.Utils.thirdparty.BPInterfaceFactory;
 import fr.Alphart.BAT.Utils.thirdparty.BPInterfaceFactory.PermissionProvider;
-import fr.Alphart.BAT.Utils.thirdparty.Metrics;
-import fr.Alphart.BAT.Utils.thirdparty.Metrics.Graph;
 import fr.Alphart.BAT.Utils.thirdparty.MojangAPIProvider;
 import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
@@ -133,14 +130,7 @@ public class Core implements IModule, Listener {
 		
 		// Update the date format (if translation has been changed)
 		defaultDF = new EnhancedDateFormat(BAT.getInstance().getConfiguration().isLitteralDate());
-		
-        // Init metrics
-        try{
-            initMetrics();
-        }catch(final IOException e){
-            BAT.getInstance().getLogger().severe("BAT met an error while trying to connect to Metrics :");
-            e.printStackTrace();
-        }
+
 		return true;
 	}
 
@@ -300,31 +290,6 @@ public class Core implements IModule, Listener {
 	  }
 	  
 	  return ProxyServer.getInstance().getConfig().isOnlineMode();
-	}
-	
-	public void initMetrics() throws IOException{
-        Metrics metrics = new Metrics(BAT.getInstance());
-        final Graph locale = metrics.createGraph("Locale");
-        locale.addPlotter(new Metrics.Plotter(BAT.getInstance().getConfiguration().getLocale().getLanguage()) {
-            @Override
-            public int getValue() {
-                return 1;
-            }
-        });
-        final Graph RDBMS = metrics.createGraph("RDBMS");
-        RDBMS.addPlotter(new Metrics.Plotter("MySQL") {
-            @Override
-            public int getValue() {
-                return !DataSourceHandler.isSQLite() ? 1 : 0;
-            }
-        });
-        RDBMS.addPlotter(new Metrics.Plotter("SQLite") {
-            @Override
-            public int getValue() {
-                return DataSourceHandler.isSQLite() ? 1 : 0;
-            }
-        });
-        metrics.start();
 	}
 	
 	// Event listener
