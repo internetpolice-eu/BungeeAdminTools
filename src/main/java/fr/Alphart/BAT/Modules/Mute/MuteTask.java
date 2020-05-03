@@ -29,11 +29,7 @@ public class MuteTask implements Runnable {
 		Statement statement = null;
 		try (Connection conn = BAT.getConnection()) {
 			statement = conn.createStatement();
-			if (DataSourceHandler.isSQLite()) {
-				statement.executeUpdate(SQLQueries.Mute.SQLite.updateExpiredMute);
-			} else {
-				statement.executeUpdate(SQLQueries.Mute.updateExpiredMute);
-			}
+            statement.executeUpdate(SQLQueries.Mute.updateExpiredMute);
 		} catch (final SQLException e) {
 			DataSourceHandler.handleException(e);
 		} finally {

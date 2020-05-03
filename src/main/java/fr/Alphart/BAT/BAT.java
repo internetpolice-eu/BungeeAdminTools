@@ -84,96 +84,32 @@ public class BAT extends Plugin {
 	}
 
 	public void loadDB(final Callback<Boolean> dbState) {
-		if (config.isMysql_enabled()) {
-		    getLogger().config("Starting connection to the mysql database ...");
-			final String username = config.getMysql_user();
-			final String password = config.getMysql_password();
-			final String database = config.getMysql_database();
-			final String port = config.getMysql_port();
-			final String host = config.getMysql_host();
-			final String urlParameters = config.getMysql_urlParameters();
-			// BoneCP can accept no database and we want to avoid that
-			Preconditions.checkArgument(!"".equals(database), "You must set the database.");
-			ProxyServer.getInstance().getScheduler().runAsync(this, new Runnable() {
-				@Override
-				public void run() {
-				    try{
-				        dsHandler = new DataSourceHandler(host, port, database, username, password, urlParameters);
-	                    final Connection c = dsHandler.getConnection();
-	                    if (c != null) {
-                            c.close();
-                            dbState.done(true, null);
-                            return;
-	                    }
-				    }catch(final SQLException handledByDatasourceHandler){}
-				    getLogger().severe("The connection pool (database connection)"
-                            + " wasn't able to be launched !");
-                    dbState.done(false, null);
-				}
-			});
-		}
-		// If MySQL is disabled, we are gonna use SQLite
-		// Before initialize the connection, we must download the sqlite driver
-		// (if it isn't already in the lib folder) and load it
-		else {
-		    getLogger().config("Starting connection to the sqlite database ...");
-			getLogger().warning("It is strongly DISRECOMMENDED to use SQLite with BAT,"
-					+ " as the SQLite implementation is less stable and much slower than the MySQL implementation.");
-			if(loadSQLiteDriver()){
-				dsHandler = new DataSourceHandler();
-				dbState.done(true, null);
-			}else{
-				dbState.done(false, null);
-			}
-		}
-	}
-
-	public boolean loadSQLiteDriver(){
-		final File driverPath = new File(getDataFolder() + File.separator + "lib" + File.separator
-				+ "sqlite_driver.jar");
-		new File(getDataFolder() + File.separator + "lib").mkdir();
-
-		// Download the driver if it doesn't exist
-		if (!new File(getDataFolder() + File.separator + "lib" + File.separator + "sqlite_driver.jar").exists()) {
-			getLogger().info("The SQLLite driver was not found. It is being downloaded, please wait ...");
-
-			final String driverUrl = "https://www.dropbox.com/s/ls7qoddx9m6t4vh/sqlite_driver.jar?dl=1";
-			FileOutputStream fos = null;
-			try {
-				final ReadableByteChannel rbc = Channels.newChannel(new URL(driverUrl).openStream());
-				fos = new FileOutputStream(driverPath);
-				fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			} catch (final IOException e) {
-				getLogger()
-				.severe("An error occured during the downloading of the SQLite driver. Please report this error : ");
-				e.printStackTrace();
-				return false;
-			} finally {
-				DataSourceHandler.close(fos);
-			}
-
-			getLogger().info("The driver has been successfully downloaded.");
-		}
-
-		// Load the driver
-		try {
-			URLClassLoader systemClassLoader;
-			URL u;
-			Class<URLClassLoader> sysclass;
-			u = driverPath.toURI().toURL();
-			systemClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-			sysclass = URLClassLoader.class;
-			final Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
-			method.setAccessible(true);
-			method.invoke(systemClassLoader, new Object[] { u });
-
-			Class.forName("org.sqlite.JDBC");
-			return true;
-		} catch (final Throwable t) {
-			getLogger().severe("The sqlite driver cannot be loaded. Please report this error : ");
-			t.printStackTrace();
-			return false;
-		}
+        getLogger().config("Starting connection to the mysql database ...");
+        final String username = config.getMysql_user();
+        final String password = config.getMysql_password();
+        final String database = config.getMysql_database();
+        final String port = config.getMysql_port();
+        final String host = config.getMysql_host();
+        final String urlParameters = config.getMysql_urlParameters();
+        // BoneCP can accept no database and we want to avoid that
+        Preconditions.checkArgument(!"".equals(database), "You must set the database.");
+        ProxyServer.getInstance().getScheduler().runAsync(this, new Runnable() {
+            @Override
+            public void run() {
+                try{
+                    dsHandler = new DataSourceHandler(host, port, database, username, password, urlParameters);
+                    final Connection c = dsHandler.getConnection();
+                    if (c != null) {
+                        c.close();
+                        dbState.done(true, null);
+                        return;
+                    }
+                }catch(final SQLException handledByDatasourceHandler){}
+                getLogger().severe("The connection pool (database connection)"
+                        + " wasn't able to be launched !");
+                dbState.done(false, null);
+            }
+        });
 	}
 
 	public static BAT getInstance() {

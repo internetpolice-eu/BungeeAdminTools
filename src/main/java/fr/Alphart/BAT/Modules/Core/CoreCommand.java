@@ -36,21 +36,10 @@ import fr.Alphart.BAT.Modules.ModulesManager;
 import fr.Alphart.BAT.Modules.Ban.BanEntry;
 import fr.Alphart.BAT.Modules.Comment.CommentEntry;
 import fr.Alphart.BAT.Modules.Core.PermissionManager.Action;
-import fr.Alphart.BAT.Modules.Core.Importer.BanHammerImporter;
-import fr.Alphart.BAT.Modules.Core.Importer.BungeeSuiteImporter;
-import fr.Alphart.BAT.Modules.Core.Importer.GeSuiteImporter;
-import fr.Alphart.BAT.Modules.Core.Importer.Importer;
-import fr.Alphart.BAT.Modules.Core.Importer.Importer.ImportStatus;
-import fr.Alphart.BAT.Modules.Core.Importer.MinecraftPreUUIDImporter;
-import fr.Alphart.BAT.Modules.Core.Importer.MinecraftUUIDImporter;
-import fr.Alphart.BAT.Modules.Core.Importer.SQLiteMigrater;
 import fr.Alphart.BAT.Modules.Kick.KickEntry;
 import fr.Alphart.BAT.Modules.Mute.MuteEntry;
-import fr.Alphart.BAT.Utils.CallbackUtils.Callback;
-import fr.Alphart.BAT.Utils.CallbackUtils.ProgressCallback;
 import fr.Alphart.BAT.Utils.FormatUtils;
 import fr.Alphart.BAT.Utils.Utils;
-import fr.Alphart.BAT.database.DataSourceHandler;
 
 public class CoreCommand extends BATCommand{
 	private final BaseComponent[] CREDIT;
@@ -435,107 +424,6 @@ public class CoreCommand extends BATCommand{
 			if (!CommandQueue.executeQueueCommand(sender)) {
 				sender.sendMessage(__("noQueuedCommand"));
 			}
-		}
-
-	}
-
-	@RunAsync
-	public static class ImportCmd extends BATCommand{
-	    private final static Map<String, Importer> importers = new HashMap<String, Importer>(){{
-            put("bungeeSuiteBans", new BungeeSuiteImporter());
-            put("geSuitBans", new GeSuiteImporter());
-            put("MC-Previous1.7.8", new MinecraftPreUUIDImporter());
-            put("BanHammer", new BanHammerImporter());
-            put("BATSQLite", new SQLiteMigrater());
-            put("MC-Post1.7.8", new MinecraftUUIDImporter());
-	    }};
-	    
-		public ImportCmd() { 
-		    super("import", "<" + Joiner.on('/').join(importers.keySet()) + ">", "Imports ban data from the specified source. Available sources : &a" 
-		            + Joiner.on("&e,&a").join(importers.keySet()), "bat.import");
-		}
-
-		@Override
-		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
-				throws IllegalArgumentException {
-		    checkArgument(BAT.getInstance().getConfiguration().isMysql_enabled(), "You must use MySQL in order to use the import function.");
-			final String source = args[0];
-			
-			final Importer importer = importers.get(source);
-			if(importer != null){
-			    sender.sendMessage(BAT.__("BAT will be disabled during the import ..."));
-			    BAT.getInstance().getModules().unloadModules();
-			    
-                importer.startImport(new ProgressCallback<Importer.ImportStatus>() {
-                    @Override
-                    public void done(ImportStatus result, Throwable throwable) {
-                        if(throwable != null){
-                            if(throwable instanceof RuntimeException){
-                                sender.sendMessage(BAT.__("An error (" + throwable.getMessage()
-                                        + ") has occured during the import. Please check the logs"));
-                                throwable.printStackTrace();
-                            }else{
-                                sender.sendMessage(BAT.__("An error has occured during the import. Please check the logs"));
-                                BAT.getInstance().getLogger().severe("An error has occured during the import of data from " + source 
-                                        + ". Please report this :");
-                                throwable.printStackTrace();
-                            }
-                        }else{
-                            sender.sendMessage(BAT.__("Congratulations, the migration is finished. &a" 
-                                    + result.getConvertedEntries() + " entries&e were converted successfully."));
-                        }
-                        BAT.getInstance().getModules().loadModules();
-                        sender.sendMessage(BAT.__("BAT is now reenabled ..."));
-                    }
-                    
-                    @Override
-                    public void onProgress(ImportStatus progressStatus) {
-                        sender.sendMessage(BAT.__("&a" + new DecimalFormat("0.00").format(progressStatus.getProgressionPercent()) 
-                                + "%&e entries converted !&a" + (progressStatus.getRemainingEntries()) 
-                                + "&e remaining entries on a total of &6" + progressStatus.getTotalEntries()));
-                    }
-                    
-                    @Override
-                    public void onMinorError(String errorMessage) {
-                        sender.sendMessage(BAT.__(errorMessage));
-                    }
-                }, Utils.getFinalArg(args, 1));
-			}else{
-			    throw new IllegalArgumentException("The specified source is incorrect. Available sources : &a" 
-	                + Joiner.on("&e,&a").join(importers.keySet()));
-			}
-		}
-	}
-
-	public static class BackupCmd extends BATCommand{
-		public BackupCmd() { super("backup", "", "Backup the BAT's data from the mysql database into a file", "bat.backup");}
-
-		@Override
-		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
-				throws IllegalArgumentException {
-			if(DataSourceHandler.isSQLite()){
-				throw new IllegalArgumentException("You can't backup an SQLite database with this command. "
-						+ "To save an SQLite database just copy and paste the file 'bat_database.db'.");
-			}
-			sender.sendMessage(BAT.__("Starting backup of BAT datas ..."));
-			BAT.getInstance().getDsHandler().generateMysqlBackup(new Callback<String>() {
-				@Override
-				public void done(final String result, Throwable throwable) {
-					sender.sendMessage(BAT.__(result));
-				}
-			});
-		}
-	}
-	
-	@RunAsync
-	public static class MigrateCmd extends BATCommand {
-		public MigrateCmd() { super("migrateToMysql", "", "Migrate from sqlite to mysql (one-way conversion)", "bat.import");}
-
-		@Override
-		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast) throws IllegalArgumentException {
-		    boolean isImportSimpleAlias = BAT.getInstance().getConfiguration().getSimpleAliasesCommands().get("import");
-			ProxyServer.getInstance().getPluginManager().dispatchCommand(sender, 
-			        ((!isImportSimpleAlias) ? "bat " : "") + "import BATSQLite");
 		}
 
 	}

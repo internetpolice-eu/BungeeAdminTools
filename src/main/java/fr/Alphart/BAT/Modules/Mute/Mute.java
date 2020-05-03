@@ -85,13 +85,7 @@ public class Mute implements IModule, Listener {
 		Statement statement = null;
 		try (Connection conn = BAT.getConnection()) {
 			statement = conn.createStatement();
-			if (DataSourceHandler.isSQLite()) {
-				for (final String query : SQLQueries.Mute.SQLite.createTable) {
-					statement.executeUpdate(query);
-				}
-			} else {
-				statement.executeUpdate(SQLQueries.Mute.createTable);
-			}
+            statement.executeUpdate(SQLQueries.Mute.createTable);
 			statement.close();
 		} catch (final SQLException e) {
 			DataSourceHandler.handleException(e);
@@ -144,9 +138,7 @@ public class Mute implements IModule, Listener {
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
-			statement = conn.prepareStatement(DataSourceHandler.isSQLite()
-					? SQLQueries.Mute.SQLite.getMuteMessage
-					: SQLQueries.Mute.getMuteMessage);
+			statement = conn.prepareStatement(SQLQueries.Mute.getMuteMessage);
 			try{
 				statement.setString(1, Core.getUUID(pName));
 				statement.setString(2, Core.getPlayerIP(pName));
@@ -158,14 +150,8 @@ public class Mute implements IModule, Listener {
 			resultSet = statement.executeQuery();
 	
 			if(resultSet.next()) {
-				if(DataSourceHandler.isSQLite()){
-					begin = new Timestamp(resultSet.getLong("strftime('%s',mute_begin)") * 1000);
-					String endStr = resultSet.getString("mute_end");
-					expiration = (endStr == null) ? null : new Timestamp(Long.parseLong(endStr));
-				}else{
-					begin = resultSet.getTimestamp("mute_begin");
-					expiration = resultSet.getTimestamp("mute_end");
-				}
+                begin = resultSet.getTimestamp("mute_begin");
+                expiration = resultSet.getTimestamp("mute_end");
 				reason = (resultSet.getString("mute_reason") != null) ? resultSet.getString("mute_reason") : IModule.NO_REASON;
 				staff = resultSet.getString("mute_staff");
 			}else{
@@ -364,11 +350,10 @@ public class Mute implements IModule, Listener {
 	 * @param server
 	 *            ; set to "(global)", to global mute
 	 * @param staff
-	 * @param duration
+	 * @param expirationTimestamp
 	 *            ; set to 0 for mute def
 	 * @param reason
 	 *            | optional
-	 * @param ip
 	 */
 	public String muteIP(final ProxiedPlayer player, final String server, final String staff,
 			final long expirationTimestamp, final String reason) {
@@ -386,7 +371,6 @@ public class Mute implements IModule, Listener {
 	 *            (global), remove global mute
 	 * @param staff
 	 * @param reason
-	 * @param unMuteIP
 	 */
 	public String unMute(final String mutedEntity, final String server, final String staff, final String reason) {
 		PreparedStatement statement = null;
@@ -395,15 +379,12 @@ public class Mute implements IModule, Listener {
 			if (Utils.validIP(mutedEntity)) {
 				final String ip = mutedEntity;
 				if (ANY_SERVER.equals(server)) {
-					statement = (DataSourceHandler.isSQLite()) ? conn.prepareStatement(SQLQueries.Mute.SQLite.unMuteIP)
-							: conn.prepareStatement(SQLQueries.Mute.unMuteIP);
+					statement = conn.prepareStatement(SQLQueries.Mute.unMuteIP);
 					statement.setString(1, reason);
 					statement.setString(2, staff);
 					statement.setString(3, ip);
 				} else {
-					statement = (DataSourceHandler.isSQLite()) ? conn
-							.prepareStatement(SQLQueries.Mute.SQLite.unMuteIPServer) : conn
-							.prepareStatement(SQLQueries.Mute.unMuteIPServer);
+					statement = conn.prepareStatement(SQLQueries.Mute.unMuteIPServer);
 					statement.setString(1, reason);
 					statement.setString(2, staff);
 					statement.setString(3, ip);
@@ -419,15 +400,12 @@ public class Mute implements IModule, Listener {
 			else {
 				final String pName = mutedEntity;
 				if (ANY_SERVER.equals(server)) {
-					statement = (DataSourceHandler.isSQLite()) ? conn.prepareStatement(SQLQueries.Mute.SQLite.unMute)
-							: conn.prepareStatement(SQLQueries.Mute.unMute);
+					statement = conn.prepareStatement(SQLQueries.Mute.unMute);
 					statement.setString(1, reason);
 					statement.setString(2, staff);
 					statement.setString(3, Core.getUUID(pName));
 				} else {
-					statement = (DataSourceHandler.isSQLite()) ? conn
-							.prepareStatement(SQLQueries.Mute.SQLite.unMuteServer) : conn
-							.prepareStatement(SQLQueries.Mute.unMuteServer);
+					statement = conn.prepareStatement(SQLQueries.Mute.unMuteServer);
 					statement.setString(1, reason);
 					statement.setString(2, staff);
 					statement.setString(3, Core.getUUID(pName));
@@ -463,8 +441,6 @@ public class Mute implements IModule, Listener {
 	 * @param staff
 	 * @param reason
 	 *            | optional
-	 * @param duration
-	 *            ; set to 0 for mute def
 	 */
 	public String unMuteIP(final String entity, final String server, final String staff, final String reason) {
 		if (Utils.validIP(entity)) {
@@ -491,17 +467,13 @@ public class Mute implements IModule, Listener {
 		try (Connection conn = BAT.getConnection()) {
 			// If the entity is an ip
 			if (Utils.validIP(entity)) {
-				statement = conn.prepareStatement((DataSourceHandler.isSQLite())
-						? SQLQueries.Mute.SQLite.getMuteIP
-						: SQLQueries.Mute.getMuteIP);
+				statement = conn.prepareStatement(SQLQueries.Mute.getMuteIP);
 				statement.setString(1, entity);
 				resultSet = statement.executeQuery();
 			}
 			// Otherwise if it's a player
 			else {
-				statement = conn.prepareStatement((DataSourceHandler.isSQLite())
-						? SQLQueries.Mute.SQLite.getMute
-						: SQLQueries.Mute.getMute);
+				statement = conn.prepareStatement(SQLQueries.Mute.getMute);
 				statement.setString(1, Core.getUUID(entity));
 				resultSet = statement.executeQuery();
 			}
@@ -510,17 +482,9 @@ public class Mute implements IModule, Listener {
 				final Timestamp beginDate;
 				final Timestamp endDate;
 				final Timestamp unmuteDate;
-				if(DataSourceHandler.isSQLite()){
-					beginDate = new Timestamp(resultSet.getLong("strftime('%s',mute_begin)") * 1000);
-					final String endStr = resultSet.getString("mute_end");
-					endDate = (endStr == null) ? null : new Timestamp(Long.parseLong(endStr));
-					final long unbanLong = resultSet.getLong("strftime('%s',mute_unmutedate)") * 1000;
-					unmuteDate = (unbanLong == 0) ? null : new Timestamp(unbanLong);
-				}else{
-					beginDate = resultSet.getTimestamp("mute_begin");
-					endDate = resultSet.getTimestamp("mute_end");
-					unmuteDate = resultSet.getTimestamp("mute_unmutedate");
-				}
+                beginDate = resultSet.getTimestamp("mute_begin");
+                endDate = resultSet.getTimestamp("mute_end");
+                unmuteDate = resultSet.getTimestamp("mute_unmutedate");
 				
 				final String server = resultSet.getString("mute_server");
 				String reason = resultSet.getString("mute_reason");
@@ -622,11 +586,7 @@ public class Mute implements IModule, Listener {
 						Statement statement = null;
 						try (Connection conn = BAT.getConnection()) {
 							statement = conn.createStatement();
-							if (DataSourceHandler.isSQLite()) {
-								statement.executeUpdate(SQLQueries.Mute.SQLite.updateExpiredMute);
-							} else {
-								statement.executeUpdate(SQLQueries.Mute.updateExpiredMute);
-							}
+                            statement.executeUpdate(SQLQueries.Mute.updateExpiredMute);
 						} catch (final SQLException e) {
 							DataSourceHandler.handleException(e);
 						} finally {
@@ -707,9 +667,7 @@ public class Mute implements IModule, Listener {
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
-			statement = conn.prepareStatement((DataSourceHandler.isSQLite())
-					? SQLQueries.Mute.SQLite.getManagedMute
-					: SQLQueries.Mute.getManagedMute);
+			statement = conn.prepareStatement(SQLQueries.Mute.getManagedMute);
 			statement.setString(1, staff);
 			statement.setString(2, staff);
 			resultSet = statement.executeQuery();
@@ -718,18 +676,9 @@ public class Mute implements IModule, Listener {
 				final Timestamp beginDate;
 				final Timestamp endDate;
 				final Timestamp unmuteDate;
-				if(DataSourceHandler.isSQLite()){
-					beginDate = new Timestamp(resultSet.getLong("strftime('%s',mute_begin)") * 1000);
-					String endStr = resultSet.getString("mute_end");
-					endDate = (endStr == null) ? null : new Timestamp(Long.parseLong(endStr));
-					long unmuteLong = resultSet.getLong("strftime('%s',mute_unmutedate)") * 1000;
-					unmuteDate = (unmuteLong == 0) ? null : new Timestamp(unmuteLong);
-				}else{
-					beginDate = resultSet.getTimestamp("mute_begin");
-					endDate = resultSet.getTimestamp("mute_end");
-					unmuteDate = resultSet.getTimestamp("mute_unmutedate");
-				}
-
+                beginDate = resultSet.getTimestamp("mute_begin");
+                endDate = resultSet.getTimestamp("mute_end");
+                unmuteDate = resultSet.getTimestamp("mute_unmutedate");
 				
 				// Make it compatible with sqlite (date: get an int with the sfrt and then construct a tiemstamp)
 				final String server = resultSet.getString("mute_server");

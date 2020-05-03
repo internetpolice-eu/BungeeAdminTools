@@ -204,26 +204,6 @@ public class Utils {
 			}
 		}
 	}
-	
-    public static int getBCBuild() {
-        final Pattern p = Pattern.compile(".*?:(.*?:){3}(\\d*)");
-        final Matcher m = p.matcher(ProxyServer.getInstance().getVersion());
-        int BCBuild;
-        try {
-          if (m.find()) {
-            BCBuild = Integer.parseInt(m.group(2));
-          } else {
-            throw new NumberFormatException();
-          }
-        } catch (final NumberFormatException e) {
-          // We can't determine BC build, just display a message, and set the build so it doesn't
-          // trigger the security
-          BAT.getInstance().getLogger().info(
-                  "BC build can't be detected. If you encounter any problems, please report that message. Otherwise don't take into account");
-          BCBuild = BAT.requiredBCBuild;
-        }
-        return BCBuild;
-    }
     
     public static String getOfflineUUID(String pName){
       return java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + pName.toLowerCase()) //Dsiable case sensitivity

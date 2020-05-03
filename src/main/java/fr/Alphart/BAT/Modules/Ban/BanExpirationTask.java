@@ -28,11 +28,7 @@ public class BanExpirationTask implements Runnable {
 		Statement statement = null;
 		try (Connection conn = BAT.getConnection()) {
 			statement = conn.createStatement();
-			if (DataSourceHandler.isSQLite()) {
-				statement.executeUpdate(SQLQueries.Ban.SQLite.updateExpiredBan);
-			} else {
-				statement.executeUpdate(SQLQueries.Ban.updateExpiredBan);
-			}
+			statement.executeUpdate(SQLQueries.Ban.updateExpiredBan);
 			statement.close();
 		} catch (final SQLException e) {
 			DataSourceHandler.handleException(e);
