@@ -43,8 +43,6 @@ import fr.Alphart.BAT.database.DataSourceHandler;
  * @author Alphart
  */
 public class BAT extends Plugin {
-	public final static int requiredBCBuild = 878;
-	
 	private static BAT instance;
 	private static DataSourceHandler dsHandler;
 	private Configuration config;
@@ -57,18 +55,6 @@ public class BAT extends Plugin {
 		config = new Configuration();
 		prefix = config.getPrefix();
 		getLogger().setLevel(Level.INFO);
-		
-		// Minimal version check
-		if (!ProxyServer.getInstance().getName().equals("BungeeCord")) {
-		  getLogger().warning("BungeeCord version check disabled because a fork has been detected."
-              + " Make sur your fork is based on a BungeeCord build > #" + requiredBCBuild);
-		}
-		else if(Utils.getBCBuild() < requiredBCBuild && !new File(getDataFolder(), "skipversiontest").exists()){
-		  getLogger().severe("Your BungeeCord build (#" + Utils.getBCBuild() + ") is not supported. Please use at least BungeeCord #" + requiredBCBuild);
-		  getLogger().severe("If you want to skip that test, create a file named 'skipversiontest' in BAT directory.");
-          getLogger().severe("BAT is going to shutdown ...");
-          return;
-		}
 		
 		if(config.isDebugMode()){
 		    enableDebugMode();
