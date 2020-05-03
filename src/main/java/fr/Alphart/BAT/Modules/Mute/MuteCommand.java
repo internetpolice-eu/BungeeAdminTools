@@ -162,11 +162,7 @@ public class MuteCommand extends CommandHandler {
 
 		checkArgument(!mute.isMute((ip == null) ? target : ip, server, false), _("alreadyMute"));
 
-		if (ipMute && !BAT.getInstance().getRedis().isRedisEnabled() && player != null) {
-			returnedMsg = mute.muteIP(player, server, staff, 0, reason);
-		} else {
-			returnedMsg = mute.mute(target, server, staff, 0, reason);
-		}
+        returnedMsg = mute.mute(target, server, staff, 0, reason);
 
 		if(broadcast){
 		  BAT.broadcast(returnedMsg, Action.MUTE_BROADCAST.getPermission());
@@ -298,11 +294,7 @@ public class MuteCommand extends CommandHandler {
 
 		checkArgument(!mute.isMute((ip == null) ? target : ip, server, false), _("alreadyMute"));
 
-		if (ipMute && !BAT.getInstance().getRedis().isRedisEnabled() && player != null) {
-			returnedMsg = mute.muteIP(player, server, staff, expirationTimestamp, reason);
-		} else {
-			returnedMsg = mute.mute(target, server, staff, expirationTimestamp, reason);
-		}
+        returnedMsg = mute.mute(target, server, staff, expirationTimestamp, reason);
 
 		if(broadcast){
 		  BAT.broadcast(returnedMsg, Action.MUTE_BROADCAST.getPermission());
