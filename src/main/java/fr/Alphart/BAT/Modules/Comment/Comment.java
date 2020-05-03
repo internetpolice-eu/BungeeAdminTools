@@ -266,12 +266,12 @@ public class Comment implements IModule{
 			
 			if(commentID != -1){
 				if(!deleted){
-					throw new IllegalArgumentException(I18n._("noCommentIDFound", new String[] {entity}));
+					throw new IllegalArgumentException(I18n.tr_("noCommentIDFound", new String[] {entity}));
 				}
-				return I18n._("commentIDCleared", new String[] {String.valueOf(commentID), entity});
+				return I18n.tr_("commentIDCleared", new String[] {String.valueOf(commentID), entity});
 			}
 			
-			return I18n._("commentsCleared", new String[] {entity});
+			return I18n.tr_("commentsCleared", new String[] {entity});
 		} catch (final SQLException e) {
 			return DataSourceHandler.handleException(e);
 		} finally {

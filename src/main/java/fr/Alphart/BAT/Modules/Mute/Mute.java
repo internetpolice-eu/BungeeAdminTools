@@ -1,7 +1,7 @@
 package fr.Alphart.BAT.Modules.Mute;
 
-import static fr.Alphart.BAT.I18n.I18n._;
-import static fr.Alphart.BAT.I18n.I18n.__;
+import static fr.Alphart.BAT.I18n.I18n.tr_;
+import static fr.Alphart.BAT.I18n.I18n.tr__;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,16 +13,14 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import fr.Alphart.BAT.I18n.I18n;
 import lombok.Getter;
 import net.cubespace.Yamler.Config.Comment;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -163,10 +161,10 @@ public class Mute implements IModule, Listener {
 			DataSourceHandler.close(statement, resultSet);
 		}
 		if(expiration != null){
-			mutedPlayers.get(pName).setMuteMessage(_("isMuteTemp", 
+			mutedPlayers.get(pName).setMuteMessage(I18n.tr_("isMuteTemp",
 					new String[]{ reason , "{expiration}", Core.defaultDF.format(begin), staff }), expiration);
 		}else{
-			mutedPlayers.get(pName).setMuteMessage(_("isMute", 
+			mutedPlayers.get(pName).setMuteMessage(I18n.tr_("isMute",
 					new String[]{ reason, Core.defaultDF.format(begin), staff }), null);
 		}
 	}
@@ -297,16 +295,16 @@ public class Mute implements IModule, Listener {
                         mutedPlayers.get(player.getName()).addServer(server);
                     }
                     if (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server)) {
-                        player.sendMessage(__("wasMutedNotif", new String[] { reason }));
+                        player.sendMessage(I18n.tr__("wasMutedNotif", new String[] { reason }));
                     }
                 }
             }
 
 				if (expirationTimestamp > 0) {
-					return _("muteTempBroadcast", new String[] { ip, FormatUtils.getDuration(expirationTimestamp),
+					return I18n.tr_("muteTempBroadcast", new String[] { ip, FormatUtils.getDuration(expirationTimestamp),
 							staff, server, reason });
 				} else {
-					return _("muteBroadcast", new String[] { ip, staff, server, reason });
+					return I18n.tr_("muteBroadcast", new String[] { ip, staff, server, reason });
 				}
 			}
 
@@ -326,14 +324,14 @@ public class Mute implements IModule, Listener {
 			    	if (player != null) {
 						updateMuteData(player.getName());
 						if(server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server)){
-							player.sendMessage(__("wasMutedNotif", new String[] { reason }));
+							player.sendMessage(I18n.tr__("wasMutedNotif", new String[] { reason }));
 						}
 					}
 			    	if (expirationTimestamp > 0) {
-						return _("muteTempBroadcast", new String[] { pName, FormatUtils.getDuration(expirationTimestamp),
+						return I18n.tr_("muteTempBroadcast", new String[] { pName, FormatUtils.getDuration(expirationTimestamp),
 							staff, server, reason });
 					} else {
-						return _("muteBroadcast", new String[] { pName, staff, server, reason });
+						return I18n.tr_("muteBroadcast", new String[] { pName, staff, server, reason });
 					}
 
 			}
@@ -358,7 +356,7 @@ public class Mute implements IModule, Listener {
 	public String muteIP(final ProxiedPlayer player, final String server, final String staff,
 			final long expirationTimestamp, final String reason) {
 		mute(Utils.getPlayerIP(player), server, staff, expirationTimestamp, reason);
-		return _("muteBroadcast", new String[] { player.getName() + "'s IP", staff, server, reason });
+		return I18n.tr_("muteBroadcast", new String[] { player.getName() + "'s IP", staff, server, reason });
 	}
 
 	/**
@@ -393,7 +391,7 @@ public class Mute implements IModule, Listener {
 				statement.executeUpdate();
 				statement.close();
 
-				return _("unmuteBroadcast", new String[] { ip, staff, server, reason });
+				return I18n.tr_("unmuteBroadcast", new String[] { ip, staff, server, reason });
 			}
 
 			// Otherwise it's a player
@@ -418,11 +416,11 @@ public class Mute implements IModule, Listener {
 				if (player != null) {
 					updateMuteData(player.getName());
 					if(ANY_SERVER.equals(server) || GLOBAL_SERVER.equals(server) || player.getServer().getInfo().getName().equalsIgnoreCase(server)){
-						player.sendMessage(__("wasUnmutedNotif", new String[] { reason }));
+						player.sendMessage(I18n.tr__("wasUnmutedNotif", new String[] { reason }));
 					}
 				}
 
-				return _("unmuteBroadcast", new String[] { pName, staff, server, reason });
+				return I18n.tr_("unmuteBroadcast", new String[] { pName, staff, server, reason });
 			}
 		} catch (final SQLException e) {
 			return DataSourceHandler.handleException(e);
@@ -448,7 +446,7 @@ public class Mute implements IModule, Listener {
 		} else {
 			unMute(Core.getPlayerIP(entity), server, staff, reason);
 			updateMuteData(entity);
-			return _("unmuteBroadcast", new String[] { entity + "'s IP", staff, server, reason });
+			return I18n.tr_("unmuteBroadcast", new String[] { entity + "'s IP", staff, server, reason });
 		}
 	}
 
@@ -599,7 +597,7 @@ public class Mute implements IModule, Listener {
 					return BAT.__(muteMessage.getKey());
 				}
 			}
-			return __("wasUnmutedNotif", new String[]{ NO_REASON });
+			return I18n.tr__("wasUnmutedNotif", new String[]{ NO_REASON });
 		}
 		
 		public void setMuteMessage(final String messagePattern, final Timestamp expiration){
@@ -772,7 +770,7 @@ public class Mute implements IModule, Listener {
 			player.sendMessage(mutedPlayers.get(player.getName()).getMuteMessage(this));
 			e.setCancelled(true);
 		} else if (muteState == -1) {
-			player.sendMessage(__("loadingMutedata"));
+			player.sendMessage(tr__("loadingMutedata"));
 			e.setCancelled(true);
 		}
 	}

@@ -1,6 +1,6 @@
 package fr.Alphart.BAT.Modules.Kick;
 
-import static fr.Alphart.BAT.I18n.I18n._;
+import static fr.Alphart.BAT.I18n.I18n.tr_;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.Alphart.BAT.I18n.I18n;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -94,7 +95,7 @@ public class Kick implements IModule {
 	public String kick(final ProxiedPlayer player, final String staff, final String reason) {
 		player.connect(ProxyServer.getInstance().getServerInfo(
 				player.getPendingConnection().getListener().getDefaultServer()));
-		player.sendMessage(TextComponent.fromLegacyText(_("wasKickedNotif", new String[] { reason })));
+		player.sendMessage(TextComponent.fromLegacyText(I18n.tr_("wasKickedNotif", new String[] { reason })));
 		return kickSQL(Core.getUUID(player.getName()), player.getServer().getInfo().getName(), staff, reason);
 	}
 	public String kickSQL(final String pUUID, final String server, final String staff, final String reason) {
@@ -108,7 +109,7 @@ public class Kick implements IModule {
 			statement.executeUpdate();
 			statement.close();
 
-			return _("kickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, server, reason });
+			return I18n.tr_("kickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, server, reason });
 		} catch (final SQLException e) {
 			return DataSourceHandler.handleException(e);
 		} finally {
@@ -124,7 +125,7 @@ public class Kick implements IModule {
 	 */
 	public String gKick(final ProxiedPlayer player, final String staff, final String reason) {
 		final String message = gKickSQL(Core.getUUID(player.getName()), staff, reason);
-		player.disconnect(TextComponent.fromLegacyText(_("wasKickedNotif", new String[] { reason })));
+		player.disconnect(TextComponent.fromLegacyText(I18n.tr_("wasKickedNotif", new String[] { reason })));
 		return message;
 	}
 	public String gKickSQL(final String pUUID, final String staff, final String reason) {
@@ -138,7 +139,7 @@ public class Kick implements IModule {
 			statement.executeUpdate();
 			statement.close();
 
-            return _("gKickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, reason });
+            return I18n.tr_("gKickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, reason });
 		} catch (final SQLException e) {
 			return DataSourceHandler.handleException(e);
 		} finally {

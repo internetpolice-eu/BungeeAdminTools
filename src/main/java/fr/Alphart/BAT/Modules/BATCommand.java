@@ -1,7 +1,7 @@
 package fr.Alphart.BAT.Modules;
 
-import static fr.Alphart.BAT.I18n.I18n._;
-import static fr.Alphart.BAT.I18n.I18n.__;
+import static fr.Alphart.BAT.I18n.I18n.tr_;
+import static fr.Alphart.BAT.I18n.I18n.tr__;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,6 +14,7 @@ import java.util.MissingResourceException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import fr.Alphart.BAT.I18n.I18n;
 import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -110,18 +111,18 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 			if (exception.getMessage() == null) {
 				if(coreCommand){
 					// Just need to add the /bat if it's a core command
-					sender.sendMessage(__("invalidArgsUsage", new String[] { "&e/bat " + getFormatUsage() }));
+					sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[] { "&e/bat " + getFormatUsage() }));
 				}else{
-					sender.sendMessage(__("invalidArgsUsage", new String[] { "&e/" + getFormatUsage() }));
+					sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[] { "&e/" + getFormatUsage() }));
 				}
-			} else if (_("noPerm").equals(exception.getMessage())) {
-				sender.sendMessage(__("noPerm"));
+			} else if (tr_("noPerm").equals(exception.getMessage())) {
+				sender.sendMessage(tr__("noPerm"));
 			} else {
-				sender.sendMessage(__("invalidArgs", new String[] { exception.getMessage() }));
+				sender.sendMessage(I18n.tr__("invalidArgs", new String[] { exception.getMessage() }));
 			}
 		}
 		else if(exception instanceof UUIDNotFoundException){
-			sender.sendMessage(__("invalidArgs", new String[] { _("cannotGetUUID", new String[] { ((UUIDNotFoundException)exception).getInvolvedPlayer() }) }));
+			sender.sendMessage(I18n.tr__("invalidArgs", new String[] { I18n.tr_("cannotGetUUID", new String[] { ((UUIDNotFoundException)exception).getInvolvedPlayer() }) }));
 		}
 		else if(exception instanceof MissingResourceException){
 			sender.sendMessage(BAT.__("&cAn error occured with the translation. Key involved : &a" + ((MissingResourceException)exception).getKey()));
@@ -168,7 +169,7 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 				}
 			}
 			if(!hasPerm){
-				sender.sendMessage(__("noPerm"));
+				sender.sendMessage(tr__("noPerm"));
 				return;
 			}
 		}
@@ -273,9 +274,9 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 		        ? "confirm" : "bat confirm";
 		if (!CommandQueue.isExecutingQueueCommand(sender)) {
 			if ("".equals(message)) {
-				sender.sendMessage(__("mustConfirm", new String[] { "", cmdToConfirm }));
+				sender.sendMessage(I18n.tr__("mustConfirm", new String[] { "", cmdToConfirm }));
 			} else {
-				sender.sendMessage(__("mustConfirm", new String[] { "&e"+message, cmdToConfirm }));
+				sender.sendMessage(I18n.tr__("mustConfirm", new String[] { "&e"+message, cmdToConfirm }));
 			}
 			CommandQueue.queueCommand(sender, command);
 		}

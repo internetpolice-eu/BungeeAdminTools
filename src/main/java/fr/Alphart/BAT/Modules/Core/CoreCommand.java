@@ -1,11 +1,10 @@
 package fr.Alphart.BAT.Modules.Core;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static fr.Alphart.BAT.I18n.I18n._;
-import static fr.Alphart.BAT.I18n.I18n.__;
+import static fr.Alphart.BAT.I18n.I18n.tr_;
+import static fr.Alphart.BAT.I18n.I18n.tr__;
 
 import java.lang.reflect.InvocationTargetException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,11 +19,9 @@ import lombok.Getter;
 import net.cubespace.Yamler.Config.InvalidConfigurationException;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import fr.Alphart.BAT.BAT;
@@ -139,10 +136,10 @@ public class CoreCommand extends BATCommand{
 				if (cmd.getBATPermission().isEmpty() || sender.hasPermission(cmd.getBATPermission()) || sender.hasPermission("bat.admin")) {
 					cmd.execute(sender, cleanArgs);
 				} else {
-					sender.sendMessage(__("noPerm"));
+					sender.sendMessage(tr__("noPerm"));
 				}
 			} else {
-				sender.sendMessage(__("invalidCommand"));
+				sender.sendMessage(tr__("invalidCommand"));
 			}
 		}
 	}
@@ -243,7 +240,7 @@ public class CoreCommand extends BATCommand{
 				throws IllegalArgumentException {
 			final String entity = args[0];
 			if (Utils.validIP(entity)) {
-				checkArgument(sender.hasPermission("bat.admin") || sender.hasPermission(Action.LOOKUP.getPermission() + ".ip"), _("noPerm"));
+				checkArgument(sender.hasPermission("bat.admin") || sender.hasPermission(Action.LOOKUP.getPermission() + ".ip"), tr_("noPerm"));
 				if(args.length == 1){
 					for (final BaseComponent[] msg : lookupFormatter.getSummaryLookupIP(entity)) {
 						sender.sendMessage(msg);
@@ -422,7 +419,7 @@ public class CoreCommand extends BATCommand{
 		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
 				throws IllegalArgumentException {
 			if (!CommandQueue.executeQueueCommand(sender)) {
-				sender.sendMessage(__("noQueuedCommand"));
+				sender.sendMessage(tr__("noQueuedCommand"));
 			}
 		}
 

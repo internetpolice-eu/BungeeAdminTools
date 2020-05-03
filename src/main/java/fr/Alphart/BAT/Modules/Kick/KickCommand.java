@@ -1,8 +1,9 @@
 package fr.Alphart.BAT.Modules.Kick;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static fr.Alphart.BAT.I18n.I18n._;
+import static fr.Alphart.BAT.I18n.I18n.tr_;
 
+import fr.Alphart.BAT.I18n.I18n;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -47,7 +48,7 @@ public class KickCommand extends CommandHandler {
 			}
                         
             checkArgument(args.length != 1 || !BAT.getInstance().getConfiguration().isMustGiveReason(),
-                _("noReasonInCommand"));
+                tr_("noReasonInCommand"));
 
 			final String pName = args[0];
 	    	final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
@@ -56,13 +57,13 @@ public class KickCommand extends CommandHandler {
 	    		final String pServer = player.getServer().getInfo().getName();
    				checkArgument(
 					pServer != null && !pServer.equals(player.getPendingConnection().getListener().getDefaultServer()),
-					_("cantKickDefaultServer", new String[] { pName }));
+					I18n.tr_("cantKickDefaultServer", new String[] { pName }));
 
    				checkArgument(
 					PermissionManager.canExecuteAction(Action.KICK, sender, player.getServer().getInfo().getName()),
-					_("noPerm"));
+					tr_("noPerm"));
 
-   				checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), _("isExempt"));
+   				checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), tr_("isExempt"));
 
    				final String returnedMsg = kick.kick(player, sender.getName(),
 					(args.length == 1) ? IModule.NO_REASON : Utils.getFinalArg(args, 1));
@@ -70,7 +71,7 @@ public class KickCommand extends CommandHandler {
                   BAT.broadcast(returnedMsg, Action.KICK_BROADCAST.getPermission());
                 }
 	    	}else{
-                throw new IllegalArgumentException(_("playerNotFound"));
+                throw new IllegalArgumentException(tr_("playerNotFound"));
 	    	}
 		}
 	}
@@ -88,12 +89,12 @@ public class KickCommand extends CommandHandler {
 			final String pName = args[0];
                         
             checkArgument(args.length != 1 || !BAT.getInstance().getConfiguration().isMustGiveReason(),
-                    _("noReasonInCommand"));
+                    tr_("noReasonInCommand"));
 
             final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
-            checkArgument(player != null, _("playerNotFound"));
+            checkArgument(player != null, tr_("playerNotFound"));
 
-            checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), _("isExempt"));
+            checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), tr_("isExempt"));
 
             final String returnedMsg = kick.gKick(player, sender.getName(),
                 (args.length == 1) ? IModule.NO_REASON : Utils.getFinalArg(args, 1));
