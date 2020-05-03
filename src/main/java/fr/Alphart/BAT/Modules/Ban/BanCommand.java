@@ -13,7 +13,6 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import com.google.common.base.Joiner;
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.BATCommand;
@@ -116,14 +115,7 @@ public class BanCommand extends CommandHandler {
 		final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(target);
 		
 		UUID pUUID = null;
-		if (BAT.getInstance().getRedis().isRedisEnabled()) {
-		    UUID tempUUID = RedisBungee.getApi().getUuidFromName(target, false);
-		    if (tempUUID != null && RedisBungee.getApi().isPlayerOnline(tempUUID)) pUUID = tempUUID;
-		}
-
-
 		String ip = null;
-
 		String returnedMsg;
 
 		if (global) {
@@ -261,13 +253,7 @@ public class BanCommand extends CommandHandler {
 		final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(target);
 		
 		UUID pUUID = null;
-		if (BAT.getInstance().getRedis().isRedisEnabled()) {
-		    UUID tempUUID = RedisBungee.getApi().getUuidFromName(target, false);
-		    if (tempUUID != null && RedisBungee.getApi().isPlayerOnline(tempUUID)) pUUID = tempUUID;
-		}
-
 		String ip = null;
-
 		String returnedMsg;
 
 		if (global) {

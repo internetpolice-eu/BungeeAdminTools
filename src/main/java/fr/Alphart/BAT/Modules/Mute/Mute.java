@@ -32,8 +32,6 @@ import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.BATCommand;
 import fr.Alphart.BAT.Modules.CommandHandler;
@@ -305,34 +303,18 @@ public class Mute implements IModule, Listener {
 				statement.executeUpdate();
 				statement.close();
 
-				if (BAT.getInstance().getRedis().isRedisEnabled()) {
-				    	for (UUID pUUID : RedisBungee.getApi().getPlayersOnline()) {
-				    	    	if (RedisBungee.getApi().getPlayerIp(pUUID).equals(ip)) {
-				    	    	    	// The mute task timer will add the player to the bungeecord instance's cache if needed.
-				    	    	    	if(server.equals(GLOBAL_SERVER) || RedisBungee.getApi().getServerFor(pUUID).getName().equalsIgnoreCase(server)) {
-				    	    	    	    	ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pUUID);
-				    	    	    	    	if (player != null) {
-				    	    	    	    	    	player.sendMessage(__("wasMutedNotif", new String[] { reason }));
-				    	    	    	    	} else {
-					    	    	    	    	BAT.getInstance().getRedis().sendMessagePlayer(pUUID, TextComponent.toLegacyText(__("wasMutedNotif", new String[] { reason })));
-				    	    	    	    	}
-				    	    	    	}
-				    	    	}
-				    	}
-				} else {
-				    	for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-						if (Utils.getPlayerIP(player).equals(ip)) {
-							if (server.equals(GLOBAL_SERVER)) {
-								mutedPlayers.get(player.getName()).setGlobal();
-							} else {
-								mutedPlayers.get(player.getName()).addServer(server);
-							}
-							if (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server)) {
-								player.sendMessage(__("wasMutedNotif", new String[] { reason }));
-							}
-						}
-					}
-				}
+                for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (Utils.getPlayerIP(player).equals(ip)) {
+                    if (server.equals(GLOBAL_SERVER)) {
+                        mutedPlayers.get(player.getName()).setGlobal();
+                    } else {
+                        mutedPlayers.get(player.getName()).addServer(server);
+                    }
+                    if (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server)) {
+                        player.sendMessage(__("wasMutedNotif", new String[] { reason }));
+                    }
+                }
+            }
 
 				if (expirationTimestamp > 0) {
 					return _("muteTempBroadcast", new String[] { ip, FormatUtils.getDuration(expirationTimestamp),
@@ -360,11 +342,6 @@ public class Mute implements IModule, Listener {
 						if(server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server)){
 							player.sendMessage(__("wasMutedNotif", new String[] { reason }));
 						}
-					} else if (BAT.getInstance().getRedis().isRedisEnabled()) {
-						//Need to implement a function to get an UUID object instead of a string one.
-						final UUID pUUID = Core.getUUIDfromString(Core.getUUID(pName));
-						BAT.getInstance().getRedis().sendMuteUpdatePlayer(pUUID, server);
-				    	BAT.getInstance().getRedis().sendMessagePlayer(pUUID, TextComponent.toLegacyText(__("wasMutedNotif", new String[] { reason })));
 					}
 			    	if (expirationTimestamp > 0) {
 						return _("muteTempBroadcast", new String[] { pName, FormatUtils.getDuration(expirationTimestamp),
@@ -465,13 +442,6 @@ public class Mute implements IModule, Listener {
 					if(ANY_SERVER.equals(server) || GLOBAL_SERVER.equals(server) || player.getServer().getInfo().getName().equalsIgnoreCase(server)){
 						player.sendMessage(__("wasUnmutedNotif", new String[] { reason }));
 					}
-				} else if (BAT.getInstance().getRedis().isRedisEnabled()) {
-						final UUID pUUID = Core.getUUIDfromString(Core.getUUID(pName));
-				    	ServerInfo pServer = RedisBungee.getApi().getServerFor(pUUID);
-				    	if (ANY_SERVER.equals(server) || GLOBAL_SERVER.equals(server) || (pServer != null && pServer.getName().equalsIgnoreCase(server))){
-				    		BAT.getInstance().getRedis().sendMuteUpdatePlayer(pUUID, server);
-				    		BAT.getInstance().getRedis().sendMessagePlayer(pUUID, TextComponent.toLegacyText(__("wasUnmutedNotif", new String[] { reason })));
-				    	}
 				}
 
 				return _("unmuteBroadcast", new String[] { pName, staff, server, reason });

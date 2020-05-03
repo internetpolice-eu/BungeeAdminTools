@@ -23,7 +23,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.gson.Gson;
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.BATCommand;
@@ -226,18 +225,8 @@ public class Core implements IModule, Listener {
 	}
 
 	public static String getPlayerIP(final String pName) {
-	        if (BAT.getInstance().getRedis().isRedisEnabled()) {
-	            try {
-	            	final UUID pUUID = RedisBungee.getApi().getUuidFromName(pName, true);
-	            	if (pUUID != null && RedisBungee.getApi().isPlayerOnline(pUUID))
-	            	    return RedisBungee.getApi().getPlayerIp(pUUID).getHostAddress();
-	            } catch (Exception exp) {
-	        	exp.printStackTrace();
-	            }
-	        } else {
-	            	final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
-	            	if (player != null) return Utils.getPlayerIP(player);
-	        }
+        final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
+        if (player != null) return Utils.getPlayerIP(player);
 
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;

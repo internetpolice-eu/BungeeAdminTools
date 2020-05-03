@@ -25,8 +25,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.scheduler.ScheduledTask;
 import net.md_5.bungee.event.EventHandler;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.BATCommand;
 import fr.Alphart.BAT.Modules.IModule;
@@ -282,19 +280,6 @@ public class Ban implements IModule, Listener {
 						BAT.kick(player, _("wasBannedNotif", new String[] { reason }));
 					}
 				}
-				
-				if (BAT.getInstance().getRedis().isRedisEnabled()) {
-				    	for (final UUID pUUID : RedisBungee.getApi().getPlayersOnline()) {
-				    	    // Though they're provided by RedisBungee itself, sometimes Redis can't return PlayerIP or Server of this player so we just skip it
-				    	    if(RedisBungee.getApi().getPlayerIp(pUUID) == null || RedisBungee.getApi().getServerFor(pUUID)==null){
-				    	      BAT.getInstance().getLogger().config("Skipping UUID " + pUUID + " while iterating through players @ Redis support banip");
-				    	      continue;
-				    	    }
-				    	    if (ip.equals(RedisBungee.getApi().getPlayerIp(pUUID)) && (GLOBAL_SERVER.equals(server) || server.equalsIgnoreCase(RedisBungee.getApi().getServerFor(pUUID).getName()))) {
-				    	      BAT.getInstance().getRedis().sendGKickPlayer(pUUID, _("wasBannedNotif", new String[] { reason }));
-				    	    }
-				    	}
-				}
 
 				if (expirationTimestamp > 0) {
 					return _("banTempBroadcast", new String[] { ip, FormatUtils.getDuration(expirationTimestamp),
@@ -323,12 +308,6 @@ public class Ban implements IModule, Listener {
 				if (player != null
 						&& (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server))) {
 					BAT.kick(player, _("wasBannedNotif", new String[] { reason }));
-				} else if (BAT.getInstance().getRedis().isRedisEnabled()) {
-				    	UUID pUUID = RedisBungee.getApi().getUuidFromName(pName);
-				    	if (RedisBungee.getApi().isPlayerOnline(pUUID)
-				    		&& ((server.equals(GLOBAL_SERVER) || RedisBungee.getApi().getServerFor(pUUID).getName().equalsIgnoreCase(server)))) {
-				    	    	BAT.getInstance().getRedis().sendGKickPlayer(pUUID, _("wasBannedNotif", new String[] { reason }));
-				    	}
 				}
 
 				if (expirationTimestamp > 0) {
@@ -360,17 +339,11 @@ public class Ban implements IModule, Listener {
 		ban(Utils.getPlayerIP(player), server, staff, expirationTimestamp, reason);
 		return _("banBroadcast", new String[] { player.getName() + "'s IP", staff, server, reason });
 	}
-	
-	
+
 	public String banRedisIP(final UUID pUUID, final String server, final String staff,
-			final long expirationTimestamp, final String reason) {
-	    	if (BAT.getInstance().getRedis().isRedisEnabled() && RedisBungee.getApi().isPlayerOnline(pUUID)) {
-	    	    	ban(RedisBungee.getApi().getPlayerIp(pUUID).getHostAddress(), server, staff, expirationTimestamp, reason);
-			return _("banBroadcast", new String[] { RedisBungee.getApi().getNameFromUuid(pUUID) + "'s IP", staff, server, reason });
-	    	} else {
+			final long expirationTimestamp, final String reason)
+    {
 	    	    	return null;
-	    	}
-	    	    
 	}
 
 	/**

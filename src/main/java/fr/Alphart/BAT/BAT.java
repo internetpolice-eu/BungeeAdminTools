@@ -34,7 +34,6 @@ import fr.Alphart.BAT.I18n.I18n;
 import fr.Alphart.BAT.Modules.ModulesManager;
 import fr.Alphart.BAT.Modules.Core.Core;
 import fr.Alphart.BAT.Utils.CallbackUtils.Callback;
-import fr.Alphart.BAT.Utils.RedisUtils;
 import fr.Alphart.BAT.Utils.Utils;
 import fr.Alphart.BAT.database.DataSourceHandler;
 
@@ -51,7 +50,6 @@ public class BAT extends Plugin {
 	private Configuration config;
 	private static String prefix;
 	private ModulesManager modules;
-	private RedisUtils redis;
 
 	@Override
 	public void onEnable() {
@@ -81,8 +79,6 @@ public class BAT extends Plugin {
 			public void done(final Boolean dbEnabled, Throwable throwable) {
 				if (dbEnabled) {
 				    getLogger().config("Connection to the database established");
-					// Try enabling redis support.
-					redis = new RedisUtils(config.isRedisSupport());
 			        modules = new ModulesManager();
 					modules.loadModules();
 				} else {
@@ -97,9 +93,6 @@ public class BAT extends Plugin {
 
 	@Override
 	public void onDisable() {
-	    if(redis != null){
-	      getRedis().destroy();
-	    }
         modules.unloadModules();
 		instance = null;
 	}
@@ -206,17 +199,12 @@ public class BAT extends Plugin {
 	}
 
 	/**
-	 * Send a broadcast message to everyone with the given perm <br>
-	 * Also broadcast through Redis if it's installed that's why this method <strong>should not be called
-	 * from a Redis call</strong> otherwise it will broadcast it again and again
+	 * Send a broadcast message to everyone with the given perm
 	 * @param message
 	 * @param perm
 	 */
 	public static void broadcast(final String message, final String perm) {
 		noRedisBroadcast(message, perm);
-		if(BAT.getInstance().getRedis().isRedisEnabled()){
-			BAT.getInstance().getRedis().sendBroadcast(perm, message);
-		}
 	}
 	
 	public static void noRedisBroadcast(final String message, final String perm) {
@@ -262,10 +250,6 @@ public class BAT extends Plugin {
 
 	public DataSourceHandler getDsHandler() {
 		return dsHandler;
-	}
-
-	public RedisUtils getRedis() {
-	    return redis;
 	}
 
 	/**

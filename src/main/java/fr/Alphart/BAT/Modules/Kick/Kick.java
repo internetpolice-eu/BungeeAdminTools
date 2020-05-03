@@ -15,8 +15,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.BATCommand;
 import fr.Alphart.BAT.Modules.IModule;
@@ -154,11 +152,7 @@ public class Kick implements IModule {
 			statement.executeUpdate();
 			statement.close();
 
-			if (BAT.getInstance().getRedis().isRedisEnabled()) {
-			    	return _("gKickBroadcast", new String[] { RedisBungee.getApi().getNameFromUuid(Core.getUUIDfromString(pUUID)), staff, reason });
-			} else {
-				return _("gKickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, reason });
-			}
+            return _("gKickBroadcast", new String[] { Core.getPlayerName(pUUID), staff, reason });
 		} catch (final SQLException e) {
 			return DataSourceHandler.handleException(e);
 		} finally {

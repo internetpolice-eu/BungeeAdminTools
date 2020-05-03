@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,11 +14,9 @@ import java.util.regex.Pattern;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.config.ServerInfo;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.InvalidModuleException;
@@ -111,22 +108,11 @@ public class LookupFormatter {
         
         // Initialize all the strings to prepare the big replace
         String connection_state;
-        if (BAT.getInstance().getRedis().isRedisEnabled()) {
-                UUID pUUID = RedisBungee.getApi().getUuidFromName(pName, true);
-                if(pUUID != null && RedisBungee.getApi().isPlayerOnline(pUUID)){
-                    ServerInfo si = RedisBungee.getApi().getServerFor(pUUID);
-                    connection_state = _("connectionStateOnline").replace("{server}", si != null ? si.getName() : "unknown state");
-                }else{
-                    connection_state = _("connectionStateOffline");
-                }
-        } else {
-            if(ProxyServer.getInstance().getPlayer(pName) != null){
-                connection_state = _("connectionStateOnline")
-                        .replace("{server}", ProxyServer.getInstance().getPlayer(pName).getServer().getInfo().getName());
-            }else{
-                connection_state = _("connectionStateOffline");
-            }
-
+        if(ProxyServer.getInstance().getPlayer(pName) != null){
+            connection_state = _("connectionStateOnline")
+                    .replace("{server}", ProxyServer.getInstance().getPlayer(pName).getServer().getInfo().getName());
+        }else{
+            connection_state = _("connectionStateOffline");
         }
         
         final String joinChar = "&f, &3";

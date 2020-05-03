@@ -23,7 +23,6 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.Core.CommandQueue;
@@ -221,28 +220,16 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 		}
 		final String playerToCheck = args[args.length - 1];
 		if (playerToCheck.length() > 0) {
-		    	if (BAT.getInstance().getRedis().isRedisEnabled()) {
-		    	    	for (final String player : RedisBungee.getApi().getHumanPlayersOnline()) {
-		    	    	    	if (player
-		    	    	    		.substring(
-		    	    	    				0,
-		    	    	    				(playerToCheck.length() < player.length()) ? playerToCheck.length() : player
-		    	    	    					.length()).equalsIgnoreCase(playerToCheck)) {
-		    	    	    		result.add(player);
-		    	    		}
-		    	    	}
-		    	} else {
-		    	    	for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-					if (player
-							.getName()
-							.substring(
-									0,
-									(playerToCheck.length() < player.getName().length()) ? playerToCheck.length() : player
-										.getName().length()).equalsIgnoreCase(playerToCheck)) {
-						result.add(player.getName());
-					}
-				}
-		    	}
+            for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                if (player
+                        .getName()
+                        .substring(
+                                0,
+                                (playerToCheck.length() < player.getName().length()) ? playerToCheck.length() : player
+                                    .getName().length()).equalsIgnoreCase(playerToCheck)) {
+                    result.add(player.getName());
+                }
+            }
 		}
 		return result;
 	}
