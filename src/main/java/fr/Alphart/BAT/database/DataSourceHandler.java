@@ -1,6 +1,5 @@
 package fr.Alphart.BAT.database;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,7 +18,6 @@ import org.apache.log4j.varia.NullAppender;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
-import com.mysql.jdbc.exceptions.jdbc4.CommunicationsException;
 import com.zaxxer.hikari.HikariDataSource;
 
 import fr.Alphart.BAT.BAT;
@@ -75,12 +73,7 @@ public class DataSourceHandler {
 		} catch (final SQLException e) {
 			BAT.getInstance().getLogger().severe("BAT encounters a problem during the initialization of the database connection."
 					+ " Please check your logins and database configuration.");
-			if(e.getCause() instanceof CommunicationsException){
-			    BAT.getInstance().getLogger().severe(e.getCause().getMessage());
-			}
-			if(BAT.getInstance().getConfiguration().isDebugMode()){
-			    BAT.getInstance().getLogger().log(Level.SEVERE, e.getMessage(), e);
-			}
+            BAT.getInstance().getLogger().log(Level.SEVERE, e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -91,12 +84,8 @@ public class DataSourceHandler {
 		} catch (final SQLException e) {
 			BAT.getInstance().getLogger().severe(
 			        "BAT can't etablish connection with the database. Please report this and include the following lines :");
-			if(e.getCause() instanceof CommunicationsException){
-			    BAT.getInstance().getLogger().severe(e.getCause().getMessage());
-			}
-            if (BAT.getInstance().getConfiguration().isDebugMode()) {
-                e.printStackTrace();
-            }
+            BAT.getInstance().getLogger().severe(e.getCause().getMessage());
+            e.printStackTrace();
 			return null;
 		}
 	}
