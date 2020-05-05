@@ -61,7 +61,13 @@ public class DataSourceHandler {
 		ds.setUsername(this.username);
 		ds.setPassword(this.password);
 		ds.addDataSourceProperty("cachePrepStmts", "true");
-		ds.setMaximumPoolSize(8);
+
+		// Pool settings:
+		ds.setMaximumPoolSize(10);
+		ds.setMinimumIdle(10);
+		ds.setMaxLifetime(600000L);
+		ds.setConnectionTimeout(5000L);
+
 		try {
 			final Connection conn = ds.getConnection();
 		    int intOffset = Calendar.getInstance().getTimeZone().getOffset(Calendar.getInstance().getTimeInMillis()) / 1000;
