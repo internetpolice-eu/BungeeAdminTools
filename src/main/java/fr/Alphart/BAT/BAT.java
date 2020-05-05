@@ -71,7 +71,7 @@ public class BAT extends Plugin {
         Preconditions.checkArgument(!"".equals(database), "You must set the database.");
         getProxy().getScheduler().runAsync(this, () -> {
             try {
-                dsHandler = new DataSourceHandler(host, port, database, username, password, urlParameters);
+                dsHandler = new DataSourceHandler(this, host, port, database, username, password, urlParameters);
                 final Connection c = dsHandler.getConnection();
                 if (c != null) {
                     c.close();
