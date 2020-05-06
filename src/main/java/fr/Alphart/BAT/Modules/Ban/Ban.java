@@ -1,7 +1,5 @@
 package fr.Alphart.BAT.Modules.Ban;
 
-import static fr.Alphart.BAT.I18n.I18n.tr_;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,8 +40,10 @@ public class Ban implements IModule, Listener {
 	private ScheduledTask task;
 	private BanCommand commandHandler;
 	private final BanConfig config;
+	private final BAT plugin;
 
-	public Ban(){
+	public Ban(BAT plugin) {
+        this.plugin = plugin;
 		config = new BanConfig();
 	}
 
@@ -83,7 +83,7 @@ public class Ban implements IModule, Listener {
 		commandHandler.loadCmds();
 
 		// Launch tempban task
-		final BanExpirationTask banExpirationTask = new BanExpirationTask(this);
+		final BanExpirationTask banExpirationTask = new BanExpirationTask(this, plugin);
 		task = ProxyServer.getInstance().getScheduler().schedule(BAT.getInstance(), banExpirationTask, 0, 10, TimeUnit.SECONDS);
 
 		// Check if the online players are banned (if the module has been reloaded)

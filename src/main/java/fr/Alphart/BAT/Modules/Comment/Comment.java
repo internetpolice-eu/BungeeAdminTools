@@ -33,11 +33,13 @@ import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
 
 public class Comment implements IModule{
+    private final BAT plugin;
 	private final String name = "comment";
 	private CommentCommand commandHandler;
 	private final CommentConfig config;
 
-	public Comment(){
+	public Comment(BAT plugin) {
+	    this.plugin = plugin;
 		config = new CommentConfig();
 	}
 

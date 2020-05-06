@@ -1,7 +1,5 @@
 package fr.Alphart.BAT.Modules.Kick;
 
-import static fr.Alphart.BAT.I18n.I18n.tr_;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,11 +23,13 @@ import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
 
 public class Kick implements IModule {
+    private final BAT plugin;
 	private final String name = "kick";
 	private KickCommand commandHandler;
 	private final KickConfig config;
 
-	public Kick(){
+	public Kick(BAT plugin) {
+	    this.plugin = plugin;
 		config = new KickConfig();
 	}
 

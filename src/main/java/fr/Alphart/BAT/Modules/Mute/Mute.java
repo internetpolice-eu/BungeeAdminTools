@@ -1,6 +1,5 @@
 package fr.Alphart.BAT.Modules.Mute;
 
-import static fr.Alphart.BAT.I18n.I18n.tr_;
 import static fr.Alphart.BAT.I18n.I18n.tr__;
 
 import java.sql.Connection;
@@ -47,13 +46,15 @@ import fr.Alphart.BAT.database.SQLQueries;
  * The mute data of online players are <b>cached</b> in order to avoid lag.
  */
 public class Mute implements IModule, Listener {
+    private final BAT plugin;
 	private final String name = "mute";
 	private ConcurrentHashMap<String, PlayerMuteData> mutedPlayers;
 	private CommandHandler commandHandler;
 	private ScheduledTask task;
 	private final MuteConfig config;
 
-	public Mute() {
+	public Mute(BAT plugin) {
+	    this.plugin = plugin;
 		config = new MuteConfig();
 	}
 
@@ -459,7 +460,7 @@ public class Mute implements IModule, Listener {
 	 * @return List of MuteEntry of the entity
 	 */
 	public List<MuteEntry> getMuteData(final String entity) {
-		final List<MuteEntry> muteList = new ArrayList<MuteEntry>();
+		final List<MuteEntry> muteList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -601,7 +602,7 @@ public class Mute implements IModule, Listener {
 		}
 		
 		public void setMuteMessage(final String messagePattern, final Timestamp expiration){
-			muteMessage = new AbstractMap.SimpleEntry<String, Timestamp>(messagePattern, expiration);
+			muteMessage = new AbstractMap.SimpleEntry<>(messagePattern, expiration);
 		}
 	}
 

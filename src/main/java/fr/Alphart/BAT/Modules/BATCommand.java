@@ -8,7 +8,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.regex.Matcher;
@@ -27,7 +26,6 @@ import com.google.common.base.Preconditions;
 
 import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.Core.CommandQueue;
-import fr.Alphart.BAT.Modules.Core.Core;
 import fr.Alphart.BAT.Modules.Core.CoreCommand;
 import fr.Alphart.BAT.Utils.UUIDNotFoundException;
 
@@ -39,6 +37,8 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 	private final String permission;
 	private boolean runAsync = false;
 	private boolean coreCommand = false;
+
+	private BAT plugin;
 
 	@Setter
 	private int minArgs = 0;
@@ -140,8 +140,7 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 		if(!(permission == null || sender.hasPermission(permission) || sender.hasPermission("bat.admin")
 				|| (sender.hasPermission("bat.grantall.global") && permission.endsWith("global")))){
 			boolean hasPerm = false;
-			Collection<String> senderPerm = Core.getCommandSenderPermission(sender);
-			for(final String perm : senderPerm){
+			for(final String perm : sender.getPermissions()){
 				// The grantall give acces to all command (used when command is executed, but the plugin check in the command if the sender can execute this action)
 				// except the /bat ... commands
 				if(perm.toLowerCase().startsWith(permission)){
@@ -153,7 +152,7 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 					// We're going to check if there is no perm to cancel (using -)
 					final String searchedPattern = "-" + permission;
 					boolean permFound = false;
-					for(final String perm2 : senderPerm){
+					for(final String perm2 : sender.getPermissions()){
 						if(perm2.toLowerCase().startsWith(searchedPattern)){
 							permFound = true;
 							break;
@@ -214,7 +213,7 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 
 	@Override
 	public Iterable<String> onTabComplete(final CommandSender sender, final String[] args) {
-		final List<String> result = new ArrayList<String>();
+		final List<String> result = new ArrayList<>();
 		if (args.length == 0) {
 			sender.sendMessage(BAT.__("Add the first letter to autocomplete"));
 			return result;
@@ -255,20 +254,6 @@ public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command impl
 	}
 	
 	/* Utils for command */
-	/**
-	 * Check if the sender is a player <br>
-	 * Use for readibility
-	 * 
-	 * @param sender
-	 * @return true if the sender is a player otherwise false
-	 */
-	public boolean isPlayer(final CommandSender sender) {
-		if (sender instanceof ProxiedPlayer) {
-			return true;
-		}
-		return false;
-	}
-
 	public void mustConfirmCommand(final CommandSender sender, final String command, final String message) {
 		final String cmdToConfirm = (BAT.getInstance().getConfiguration().getSimpleAliasesCommands().get("confirm"))
 		        ? "confirm" : "bat confirm";
