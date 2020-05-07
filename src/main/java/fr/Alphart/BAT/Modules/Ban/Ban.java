@@ -93,12 +93,13 @@ public class Ban implements IModule, Listener {
 	                : Arrays.asList(GLOBAL_SERVER);
 			for(final String server : serversToCheck){
 				if(isBan(player, server)){
-					if (server.equals(player.getPendingConnection().getListener().getDefaultServer()) || server.equals(GLOBAL_SERVER)) {
+					if (server.equals(player.getPendingConnection().getListener().getServerPriority().get(0)) ||
+                        server.equals(GLOBAL_SERVER)) {
 						player.disconnect(getBanMessage(player.getPendingConnection(), server));
 						continue;
 					}
 					player.sendMessage(getBanMessage(player.getPendingConnection(), server));
-					player.connect(ProxyServer.getInstance().getServerInfo(player.getPendingConnection().getListener().getDefaultServer()));
+					plugin.sendToDefaultServer(player);
 				}
 			}
 		}
@@ -560,24 +561,20 @@ public class Ban implements IModule, Listener {
 	}
 	
 	// Event listener
-	
 	@EventHandler
 	public void onServerConnect(final ServerConnectEvent e) {
 		final ProxiedPlayer player = e.getPlayer();
 		final String target = e.getTarget().getName();
 
 		if (isBan(player, target)) {
-			if (target.equals(player.getPendingConnection().getListener().getDefaultServer())) {
+			if (target.equals(plugin.getDefaultServer(player))) {
 				// If it's player's join server kick him
 				if(e.getPlayer().getServer() == null){
 					e.setCancelled(true);
 					// Need to delay for avoiding the "bit cannot be cast to fm exception" and to annoy the banned player :p
-					ProxyServer.getInstance().getScheduler().schedule(BAT.getInstance(), new Runnable() {
-						@Override
-						public void run() {
-							e.getPlayer().disconnect(getBanMessage(player.getPendingConnection(), target));
-						}
-					}, 500, TimeUnit.MILLISECONDS);
+					plugin.getProxy().getScheduler().schedule(plugin, () ->
+                        e.getPlayer().disconnect(getBanMessage(player.getPendingConnection(), target)
+                    ), 500, TimeUnit.MILLISECONDS);
 				}else{
 					e.setCancelled(true);
 					e.getPlayer().sendMessage(getBanMessage(player.getPendingConnection(), target));
@@ -586,8 +583,7 @@ public class Ban implements IModule, Listener {
 			}
 			player.sendMessage(getBanMessage(player.getPendingConnection(), target));
 			if (player.getServer() == null) {
-				player.connect(ProxyServer.getInstance().getServerInfo(
-						player.getPendingConnection().getListener().getDefaultServer()));
+				player.connect(plugin.getProxy().getServerInfo(plugin.getDefaultServer(player)));
 			}
 			e.setCancelled(true);
 		}
@@ -595,16 +591,16 @@ public class Ban implements IModule, Listener {
 
 	@EventHandler
 	public void onPlayerLogin(final LoginEvent ev) {
-		ev.registerIntent(BAT.getInstance());
-	    BAT.getInstance().getProxy().getScheduler().runAsync(BAT.getInstance(), new Runnable()
+		ev.registerIntent(plugin);
+	    plugin.getProxy().getScheduler().runAsync(BAT.getInstance(), new Runnable()
 	    {
 	      public void run() {
 	        boolean isBanPlayer = false;
 
 	        PreparedStatement statement = null;
 	        ResultSet resultSet = null;
-	        String uuid = null;
-	        try(Connection conn = BAT.getConnection()){ 
+	        String uuid;
+	        try(Connection conn = BAT.getConnection()){
 	        	statement = conn.prepareStatement("SELECT ban_id FROM `BAT_ban` WHERE ban_state = 1 AND UUID = ? AND ban_server = '" + GLOBAL_SERVER + "';");
 	        	// If this is an online mode server, the uuid will be already set
 	        	if(ev.getConnection().getUniqueId() != null  && ProxyServer.getInstance().getConfig().isOnlineMode()){
@@ -614,13 +610,13 @@ public class Ban implements IModule, Listener {
 	        	else{
 	        		uuid = Utils.getOfflineUUID(ev.getConnection().getName());
 	        	}
-	            statement.setString(1, uuid.toString());
-	        	
+	            statement.setString(1, uuid);
+
 	            resultSet = statement.executeQuery();
 	            if (resultSet.next()){
 	              isBanPlayer = true;
 	            }
-	        } catch (SQLException e) { 
+	        } catch (SQLException e) {
 	        	DataSourceHandler.handleException(e);
 	        } finally {
 	          DataSourceHandler.close(statement, resultSet);
@@ -628,10 +624,10 @@ public class Ban implements IModule, Listener {
 
 	        if ((isBanPlayer) || (isBan(ev.getConnection().getAddress().getAddress().getHostAddress(), GLOBAL_SERVER))) {
 	          BaseComponent[] bM = getBanMessage(ev.getConnection(), GLOBAL_SERVER);
-	          ev.setCancelReason(TextComponent.toLegacyText(bM));
+	          ev.setCancelReason(bM);
 	          ev.setCancelled(true);
 	        }
-	        ev.completeIntent(BAT.getInstance());
+	        ev.completeIntent(plugin);
 	      }
 	    });
 	}

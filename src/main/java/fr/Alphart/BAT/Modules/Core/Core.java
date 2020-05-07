@@ -235,16 +235,6 @@ public class Core implements IModule, Listener {
 		}
 		return "0.0.0.0";
 	}
-
-	/**
-	 * Get the command sender permission list using bungee api or bungeeperms api if it installed
-	 * @param sender
-	 * @return permission in a collection of strings
-	 */
-	@Deprecated
-	public static Collection<String> getCommandSenderPermission(final CommandSender sender){
-        return sender.getPermissions();
-	}
 	
 	public static boolean isOnlineMode(){
 	  if(BAT.getInstance().getConfiguration().isForceOfflineMode()){

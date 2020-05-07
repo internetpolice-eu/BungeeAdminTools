@@ -87,17 +87,16 @@ public class Kick implements IModule {
 	}
 
 	/**
-	 * Kick a player and tp him to the default server
-	 * 
-	 * @param player
-	 * @param reason
+	 * Kicks the given {@link ProxiedPlayer} and sends to the default server.
+	 * @param player Player to kick.
+	 * @param reason Reason for kicking.
 	 */
-	public String kick(final ProxiedPlayer player, final String staff, final String reason) {
-		player.connect(ProxyServer.getInstance().getServerInfo(
-				player.getPendingConnection().getListener().getDefaultServer()));
+	public String kick(ProxiedPlayer player, String staff, String reason) {
+		plugin.sendToDefaultServer(player);
 		player.sendMessage(TextComponent.fromLegacyText(I18n.tr_("wasKickedNotif", new String[] { reason })));
 		return kickSQL(Core.getUUID(player.getName()), player.getServer().getInfo().getName(), staff, reason);
 	}
+
 	public String kickSQL(final String pUUID, final String server, final String staff, final String reason) {
 		PreparedStatement statement = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -118,16 +117,16 @@ public class Kick implements IModule {
 	}
 
 	/**
-	 * Kick a player from the network
-	 * 
-	 * @param player
-	 * @param reason
+	 * Kicks the given {@link ProxiedPlayer} from the network.
+	 * @param player Player to kick.
+	 * @param reason Reason for kicking.
 	 */
-	public String gKick(final ProxiedPlayer player, final String staff, final String reason) {
+	public String gKick(ProxiedPlayer player, String staff, String reason) {
 		final String message = gKickSQL(Core.getUUID(player.getName()), staff, reason);
 		player.disconnect(TextComponent.fromLegacyText(I18n.tr_("wasKickedNotif", new String[] { reason })));
 		return message;
 	}
+
 	public String gKickSQL(final String pUUID, final String staff, final String reason) {
 		PreparedStatement statement = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -156,7 +155,7 @@ public class Kick implements IModule {
 	 * @return List of KickEntry of the player
 	 */
 	public List<KickEntry> getKickData(final String pName) {
-		final List<KickEntry> kickList = new ArrayList<KickEntry>();
+		final List<KickEntry> kickList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -184,7 +183,7 @@ public class Kick implements IModule {
 	}
 	
 	public List<KickEntry> getManagedKick(final String staff) {
-		final List<KickEntry> kickList = new ArrayList<KickEntry>();
+		final List<KickEntry> kickList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {

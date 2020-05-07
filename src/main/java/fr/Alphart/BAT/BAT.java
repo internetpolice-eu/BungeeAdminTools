@@ -8,6 +8,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import com.google.common.base.Preconditions;
@@ -135,4 +136,20 @@ public class BAT extends Plugin {
         }
     }
 
+    /**
+     * Gets the configured default server for the given {@link ProxiedPlayer}.
+     * @param player Player to get default server for.
+     * @return Default server for the given player.
+     */
+    public String getDefaultServer(ProxiedPlayer player) {
+        return player.getPendingConnection().getListener().getServerPriority().get(0);
+    }
+
+    /**
+     * Sends the given {@link ProxiedPlayer} to the default server / the server with highest priority.
+     * @param player Player to send.
+     */
+    public void sendToDefaultServer(ProxiedPlayer player) {
+        player.connect(getProxy().getServerInfo(getDefaultServer(player)));
+    }
 }

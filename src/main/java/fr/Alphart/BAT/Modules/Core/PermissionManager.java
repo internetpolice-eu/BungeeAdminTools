@@ -70,7 +70,7 @@ public class PermissionManager {
 			
 			final String denialPerm = '-' + action.getPermission() + '.' + server;
 			
-			for(final String perm : Core.getCommandSenderPermission(executor)){
+			for(final String perm : executor.getPermissions()){
 				if(perm.equals(denialPerm)){
 					return false;
 				}

@@ -4,7 +4,6 @@ import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.IModule;
 import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.sql.Connection;
@@ -48,12 +47,12 @@ public class BanExpirationTask implements Runnable {
             }
             for (final String server : serversToCheck) {
                 if (ban.isBan(player, server)) {
-                    if (server.equals(player.getPendingConnection().getListener().getDefaultServer()) || server.equals(IModule.GLOBAL_SERVER)) {
+                    if (server.equals(plugin.getDefaultServer(player)) || server.equals(IModule.GLOBAL_SERVER)) {
                         player.disconnect(ban.getBanMessage(player.getPendingConnection(), server));
                         continue;
                     }
                     player.sendMessage(ban.getBanMessage(player.getPendingConnection(), server));
-                    player.connect(plugin.getProxy().getServerInfo(player.getPendingConnection().getListener().getDefaultServer()));
+                    plugin.sendToDefaultServer(player);
                 }
             }
         }
