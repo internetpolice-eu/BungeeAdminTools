@@ -32,16 +32,16 @@ public class EntityEntry {
 	
 	private final String entity;
 
-	private final List<BanEntry> bans = new ArrayList<BanEntry>();
-	private final List<MuteEntry> mutes = new ArrayList<MuteEntry>();
-	private final List<KickEntry> kicks = new ArrayList<KickEntry>();
-	private final List<CommentEntry> comments = new ArrayList<CommentEntry>();
+	private final List<BanEntry> bans = new ArrayList<>();
+	private final List<MuteEntry> mutes = new ArrayList<>();
+	private final List<KickEntry> kicks = new ArrayList<>();
+	private final List<CommentEntry> comments = new ArrayList<>();
 
 	private Timestamp firstLogin;
 	private Timestamp lastLogin;
 	private String lastIP = "0.0.0.0";
 
-	private final List<String> ipUsers = new ArrayList<String>();
+	private final List<String> ipUsers = new ArrayList<>();
 
 	private boolean exist = true;
 	private boolean player = false;

@@ -19,8 +19,6 @@ import com.google.common.base.Charsets;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
-import fr.Alphart.BAT.BAT;
-
 public class Utils {
     private static Gson gson = new Gson();
 	private static StringBuilder sb = new StringBuilder();

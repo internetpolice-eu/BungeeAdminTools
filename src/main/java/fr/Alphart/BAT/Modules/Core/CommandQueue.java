@@ -26,8 +26,8 @@ public class CommandQueue {
 	private static List<String> executingQueuedCommand = Lists.newArrayList();
 
 	public static String queueCommand(final CommandSender sender, final String command) {
-		preExecCommand.put(sender.getName(), new AbstractMap.SimpleEntry<Long, String>(
-				System.currentTimeMillis() + 15000, command));
+		preExecCommand.put(sender.getName(), new AbstractMap.SimpleEntry<>(
+            System.currentTimeMillis() + 15000, command));
 		return "You must confirm your command using";
 	}
 

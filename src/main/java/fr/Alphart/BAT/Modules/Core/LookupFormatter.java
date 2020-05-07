@@ -50,7 +50,7 @@ public class LookupFormatter {
         final EntityEntry pDetails = new EntityEntry(pName);
 
         if (!pDetails.exist()) {
-            final List<BaseComponent[]> returnedMsg = new ArrayList<BaseComponent[]>();
+            final List<BaseComponent[]> returnedMsg = new ArrayList<>();
             returnedMsg.add(tr__("playerNotFound"));
             return returnedMsg;
         }
@@ -215,16 +215,16 @@ public class LookupFormatter {
     public List<BaseComponent[]> getSummaryLookupIP(final String ip) {
         final EntityEntry ipDetails = new EntityEntry(ip);
         if (!ipDetails.exist()) {
-            final List<BaseComponent[]> returnedMsg = new ArrayList<BaseComponent[]>();
+            final List<BaseComponent[]> returnedMsg = new ArrayList<>();
             returnedMsg.add(tr__("unknownIp"));
             return returnedMsg;
         }
         boolean isBan = false;
         int bansNumber = 0;
-        final List<String> banServers = new ArrayList<String>();
+        final List<String> banServers = new ArrayList<>();
         boolean isMute = false;
         int mutesNumber = 0;
-        final List<String> muteServers = new ArrayList<String>();
+        final List<String> muteServers = new ArrayList<>();
         if (!ipDetails.getBans().isEmpty()) {
             for (final BanEntry banEntry : ipDetails.getBans()) {
                 if (banEntry.isActive()) {

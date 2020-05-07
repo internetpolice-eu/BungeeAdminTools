@@ -38,7 +38,7 @@ public class FormatUtils {
 		Preconditions.checkArgument(seconds > 0,
 				"The timestamp passed in parameter must be superior to the current timestamp !");
 
-		final List<String> item = new ArrayList<String>();
+		final List<String> item = new ArrayList<>();
 
 		int months = 0;
 		while (seconds >= 2678400) {
@@ -84,7 +84,7 @@ public class FormatUtils {
 	}
 
 	public static void showFormattedHelp(final List<BATCommand> cmds, final CommandSender sender, final String helpName) {
-		final List<BaseComponent[]> msg = new ArrayList<BaseComponent[]>();
+		final List<BaseComponent[]> msg = new ArrayList<>();
 		sb.append("&9 ---- &9Bungee&fAdmin&cTools&9 - &6");
 		sb.append(helpName);
 		sb.append("&9 - &fHELP &9---- ");
@@ -115,7 +115,7 @@ public class FormatUtils {
 	public static List<BaseComponent[]> formatNewLine(final String message) {
 	    //BEWARE: Horrible parsing code below
 		final String[] strMessageArray = message.split("\n");
-		final List<BaseComponent[]> bsList = new ArrayList<BaseComponent[]>();
+		final List<BaseComponent[]> bsList = new ArrayList<>();
 		for (String line : strMessageArray) {
 		    BaseComponent[] lineComponent = null;
   		    if(line.contains("{effect=\"hover\"")){

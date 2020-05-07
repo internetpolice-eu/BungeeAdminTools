@@ -422,7 +422,7 @@ public class Ban implements IModule, Listener {
 	 * @return List of BanEntry of the player
 	 */
 	public List<BanEntry> getBanData(final String entity) {
-		final List<BanEntry> banList = new ArrayList<BanEntry>();
+		final List<BanEntry> banList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -468,7 +468,7 @@ public class Ban implements IModule, Listener {
 	}
 
 	public List<BanEntry> getManagedBan(final String staff){
-		final List<BanEntry> banList = new ArrayList<BanEntry>();
+		final List<BanEntry> banList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {
@@ -517,7 +517,7 @@ public class Ban implements IModule, Listener {
 	 * @return Return <i>amount</i> ban entries starting from the <i>startIndex</i>th one, sorted by date
 	 */
 	public List<BanEntry> getBans(int amount, int startIndex){
-	  final List<BanEntry> banList = new ArrayList<BanEntry>();
+	  final List<BanEntry> banList = new ArrayList<>();
       PreparedStatement statement = null;
       ResultSet resultSet = null;
       try (Connection conn = BAT.getConnection()) {

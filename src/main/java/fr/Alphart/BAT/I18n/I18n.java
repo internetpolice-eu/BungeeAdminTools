@@ -18,14 +18,16 @@ import fr.Alphart.BAT.BAT;
 import fr.Alphart.BAT.Modules.IModule;
 
 public class I18n {
-	private static Map<String, String> argsReplacer = new HashMap<String, String>(){
-		private static final long serialVersionUID = 1L;
+	private static Map<String, String> argsReplacer = new HashMap<>() {
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public String put(final String key, final String value) {
-			return super.put(key, ChatColor.translateAlternateColorCodes('&', value));
-		};
-	};
+        @Override
+        public String put(final String key, final String value) {
+            return super.put(key, ChatColor.translateAlternateColorCodes('&', value));
+        }
+
+        ;
+    };
 	private ResourceBundle enBundle;
 	private ResourceBundle localeBundle;
 	private ResourceBundle customBundle;

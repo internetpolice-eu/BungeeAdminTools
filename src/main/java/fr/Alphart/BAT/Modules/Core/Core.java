@@ -6,12 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -40,46 +38,46 @@ public class Core implements IModule, Listener {
 	       .maximumSize(10000)
 	       .expireAfterAccess(30, TimeUnit.MINUTES)
 	       .build(
-	           new CacheLoader<String, String>() {
-	             public String load(final String pName) throws UUIDNotFoundException{
-	               // If offline mode, no need to query the UUID just compute it
-  	               if(!isOnlineMode()){
-  	                 return Utils.getOfflineUUID(pName);
-  	               }
-	               
-	            	final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
-	         		if (player != null) {
-	         			return player.getUniqueId().toString().replaceAll("-","");
-	         		}
+               new CacheLoader<>() {
+                   public String load(final String pName) throws UUIDNotFoundException {
+                       // If offline mode, no need to query the UUID just compute it
+                       if (!isOnlineMode()) {
+                           return Utils.getOfflineUUID(pName);
+                       }
 
-                    // Try to get the UUID from the BAT db
-	         		PreparedStatement statement = null;
-	         		ResultSet resultSet = null;
-	         		String UUID = "";
-	         		try (Connection conn = BAT.getConnection()) {
-	         			statement = conn.prepareStatement(SQLQueries.Core.getUUID);
-	         			statement.setString(1, pName);
-	         			resultSet = statement.executeQuery();
-	         			if (resultSet.next()) {
-	         				UUID = resultSet.getString("UUID");
-	         			}
-	         		} catch (final SQLException e) {
-	         			DataSourceHandler.handleException(e);
-	         		} finally {
-	         			DataSourceHandler.close(statement, resultSet);
-	         		}
-	         		
-	         		// At last try with Mojang servers (slowest method)
-	         		if(UUID.isEmpty()){
-	         			UUID = MojangAPIProvider.getUUID(pName);
-	         			if (UUID == null) {
-	         			 throw new UUIDNotFoundException(pName);
-	         			}
-	         		}
+                       final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
+                       if (player != null) {
+                           return player.getUniqueId().toString().replaceAll("-", "");
+                       }
 
-	         		return UUID;
-	             }
-	           });
+                       // Try to get the UUID from the BAT db
+                       PreparedStatement statement = null;
+                       ResultSet resultSet = null;
+                       String UUID = "";
+                       try (Connection conn = BAT.getConnection()) {
+                           statement = conn.prepareStatement(SQLQueries.Core.getUUID);
+                           statement.setString(1, pName);
+                           resultSet = statement.executeQuery();
+                           if (resultSet.next()) {
+                               UUID = resultSet.getString("UUID");
+                           }
+                       } catch (final SQLException e) {
+                           DataSourceHandler.handleException(e);
+                       } finally {
+                           DataSourceHandler.close(statement, resultSet);
+                       }
+
+                       // At last try with Mojang servers (slowest method)
+                       if (UUID.isEmpty()) {
+                           UUID = MojangAPIProvider.getUUID(pName);
+                           if (UUID == null) {
+                               throw new UUIDNotFoundException(pName);
+                           }
+                       }
+
+                       return UUID;
+                   }
+               });
 	private final String name = "core";
 	private List<BATCommand> cmds;
 	private Gson gson = new Gson();

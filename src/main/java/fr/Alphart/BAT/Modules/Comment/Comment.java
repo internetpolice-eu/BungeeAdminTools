@@ -128,11 +128,13 @@ public class Comment implements IModule{
 			"  commands: list of commands that should be executed when it triggers, you can use {player} variable",
 			"  triggerNumber: the number at which this triggers"})
 		@Getter
-		private Map<String, Trigger> triggers = new HashMap<String, Trigger>(){
-			private static final long serialVersionUID = 1L;
-		{
-			put("example", new Trigger());
-		}};
+		private Map<String, Trigger> triggers = new HashMap<>() {
+            private static final long serialVersionUID = 1L;
+
+            {
+                put("example", new Trigger());
+            }
+        };
 		
 		@Getter
 		@net.cubespace.Yamler.Config.Comment("Interval in seconds between two comments on the same player")

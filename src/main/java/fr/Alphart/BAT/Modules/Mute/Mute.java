@@ -96,7 +96,7 @@ public class Mute implements IModule, Listener {
 		commandHandler = new MuteCommand(this);
 		commandHandler.loadCmds();
 
-		mutedPlayers = new ConcurrentHashMap<String, PlayerMuteData>();
+		mutedPlayers = new ConcurrentHashMap<>();
 
 		final MuteTask muteTask = new MuteTask(this);
 		task = ProxyServer.getInstance().getScheduler().schedule(BAT.getInstance(), muteTask, 0, 10, TimeUnit.SECONDS);
@@ -117,12 +117,13 @@ public class Mute implements IModule, Listener {
 		
 		@Comment("Forbidden commands when a player is mute")
 		@Getter
-		private List<String> forbiddenCmds = new ArrayList<String>(){
-			private static final long serialVersionUID = 1L;
+		private List<String> forbiddenCmds = new ArrayList<>() {
+            private static final long serialVersionUID = 1L;
 
-		{
-			add("msg");
-		}};
+            {
+                add("msg");
+            }
+        };
 	}
 
 	public void loadMuteMessage(final String pName, final String server){
@@ -519,23 +520,25 @@ public class Mute implements IModule, Listener {
 		public PlayerMuteData(final String pName, final List<String> servers) {
 			this.pName = pName;
 			// Override the arraylist implementation to make used methods non-case sensitive
-			this.servers = new ArrayList<String>(){
-			    @Override
-			    public void add(int index, String element) {
-			        super.add(index, element.toLowerCase());
-			    }
-			    @Override
-			    public boolean add(String e) {
-			        return super.add(e.toLowerCase());
-			    }
-			    @Override
-			    public boolean contains(Object o) {
-			        if(o instanceof String){
-			            return super.contains(((String)o).toLowerCase());
-			        }
-			        return super.contains(o);
-			    }
-			};
+			this.servers = new ArrayList<>() {
+                @Override
+                public void add(int index, String element) {
+                    super.add(index, element.toLowerCase());
+                }
+
+                @Override
+                public boolean add(String e) {
+                    return super.add(e.toLowerCase());
+                }
+
+                @Override
+                public boolean contains(Object o) {
+                    if (o instanceof String) {
+                        return super.contains(((String) o).toLowerCase());
+                    }
+                    return super.contains(o);
+                }
+            };
 			for(final String server : servers){
 			    servers.add(server);
 			}
@@ -617,7 +620,7 @@ public class Mute implements IModule, Listener {
 			pMuteData.clearServers();
 			pMuteData.unsetGlobal();
 		} else {
-			pMuteData = new PlayerMuteData(pName, new ArrayList<String>());
+			pMuteData = new PlayerMuteData(pName, new ArrayList<>());
 		}
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
@@ -662,7 +665,7 @@ public class Mute implements IModule, Listener {
 	}
 	
 	public List<MuteEntry> getManagedMute(final String staff){
-		final List<MuteEntry> muteList = new ArrayList<MuteEntry>();
+		final List<MuteEntry> muteList = new ArrayList<>();
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		try (Connection conn = BAT.getConnection()) {

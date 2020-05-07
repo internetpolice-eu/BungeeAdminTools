@@ -39,7 +39,7 @@ public abstract class ModuleConfiguration extends YamlConfig {
 	@Getter
 	private boolean enabled = true;
 
-	private Map<String, Boolean> commands = new HashMap<String, Boolean>();
+	private Map<String, Boolean> commands = new HashMap<>();
 
 	/**
 	 * Get the names of the enabled commands for this module
@@ -47,7 +47,7 @@ public abstract class ModuleConfiguration extends YamlConfig {
 	 * @return list of the enabled commands
 	 */
 	public List<String> getEnabledCmds() {
-		final List<String> enabledCmds = new ArrayList<String>();
+		final List<String> enabledCmds = new ArrayList<>();
 		for (final Entry<String, Boolean> entry : commands.entrySet()) {
 			if (entry.getValue()) {
 				enabledCmds.add(entry.getKey());

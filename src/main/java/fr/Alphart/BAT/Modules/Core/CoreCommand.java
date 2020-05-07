@@ -47,7 +47,7 @@ public class CoreCommand extends BATCommand{
 	public CoreCommand(final Core coreModule) {
 		super("bat", "", "", null);
 		final Map<String, Boolean> simpleAliasesCommands = BAT.getInstance().getConfiguration().getSimpleAliasesCommands();
-		subCmd = new HashMap<List<String>, BATCommand>();
+		subCmd = new HashMap<>();
 		CREDIT = TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes(
 				'&', "&9Bungee&fAdmin&cTools&a Version {version}&e - Developed by &aAlphart")
 				.replace("{version}", BAT.getInstance().getDescription().getVersion()));
@@ -61,7 +61,7 @@ public class CoreCommand extends BATCommand{
 				}
 				final BATCommand command = (BATCommand) subClass.getConstructors()[0].newInstance();
 				cmdsList.add(command.getName());
-				final List<String> aliases = new ArrayList<String>(Arrays.asList(command.getAliases()));
+				final List<String> aliases = new ArrayList<>(Arrays.asList(command.getAliases()));
 				aliases.add(command.getName());
 				subCmd.put(aliases, command);
 			} catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -107,7 +107,7 @@ public class CoreCommand extends BATCommand{
 	}
 
 	public List<BATCommand> getSubCmd() {
-		return new ArrayList<BATCommand>(subCmd.values());
+		return new ArrayList<>(subCmd.values());
 	}
 
 	// Route the core subcmd
@@ -152,7 +152,7 @@ public class CoreCommand extends BATCommand{
 		@Override
 		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
 				throws IllegalArgumentException {
-			final List<BATCommand> cmdsList = new ArrayList<BATCommand>();
+			final List<BATCommand> cmdsList = new ArrayList<>();
 			for (final BATCommand cmd : BAT.getInstance().getModules().getCore().getCommands()) {
 				if (cmd instanceof CoreCommand) {
 					cmdsList.addAll(((CoreCommand) cmd).getSubCmd());
@@ -273,7 +273,7 @@ public class CoreCommand extends BATCommand{
 						if(!bans.isEmpty()){
 							message = lookupFormatter.formatBanLookup(entity, bans, page, false);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__((!Utils.validIP(entity))
 										? "&eThe player &a" + entity + "&e has never been banned."
 										: "&eThe IP &a" + entity + "&e has never been banned."));
@@ -284,7 +284,7 @@ public class CoreCommand extends BATCommand{
 						if(!mutes.isEmpty()){
 							message = lookupFormatter.formatMuteLookup(entity, mutes, page, false);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__((!Utils.validIP(entity))
 										? "&eThe player &a" + entity + "&e has never been muted."
 										: "&eThe IP &a" + entity + "&e has never been muted."));
@@ -295,7 +295,7 @@ public class CoreCommand extends BATCommand{
 						if(!kicks.isEmpty()){
 							message = lookupFormatter.formatKickLookup(entity, kicks, page, false);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__((!Utils.validIP(entity))
 										? "&eThe player &a" + entity + "&e has never been kicked."
 										: "&eThe IP &a" + entity + "&e has never been kicked."));
@@ -306,7 +306,7 @@ public class CoreCommand extends BATCommand{
 						if(!comments.isEmpty()){
 							message = lookupFormatter.commentRowLookup(entity, comments, page, false);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__((!Utils.validIP(entity))
 										? "&eThe player &a" + entity + "&e has no comment about him."
 										: "&eThe IP &a" + entity + "&e has no comment."));
@@ -365,7 +365,7 @@ public class CoreCommand extends BATCommand{
 						if(!bans.isEmpty()){
 							message = LookupCmd.getLookupFormatter().formatBanLookup(entity, bans, page, true);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__("&b" + entity + "&e has never performed any operation concerning ban."));
 						}
 						break;
@@ -374,7 +374,7 @@ public class CoreCommand extends BATCommand{
 						if(!mutes.isEmpty()){
 							message = LookupCmd.getLookupFormatter().formatMuteLookup(entity, mutes, page, true);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__("&b" + entity + "&e has never performed any operation concerning mute."));
 						}
 						break;
@@ -383,7 +383,7 @@ public class CoreCommand extends BATCommand{
 						if(!kicks.isEmpty()){
 							message = LookupCmd.getLookupFormatter().formatKickLookup(entity, kicks, page, true);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__("&b" + entity + "&e has never performed any operation concerning kick."));
 						}
 						break;
@@ -392,7 +392,7 @@ public class CoreCommand extends BATCommand{
 						if(!comments.isEmpty()){
 							message = LookupCmd.getLookupFormatter().commentRowLookup(entity, comments, page, true);
 						}else{
-							message = new ArrayList<BaseComponent[]>();
+							message = new ArrayList<>();
 							message.add(BAT.__("&b" + entity + "&e has never performed any operation concerning comment."));
 						}
 						break;
