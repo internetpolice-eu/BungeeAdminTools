@@ -20,76 +20,76 @@ import fr.Alphart.BAT.Utils.FormatUtils;
 import fr.Alphart.BAT.Utils.Utils;
 
 public class KickCommand extends CommandHandler {
-	private static Kick kick;
+    private static Kick kick;
 
-	public KickCommand(final Kick kickModule) {
-		super(kickModule);
-		kick = kickModule;
-	}
+    public KickCommand(final Kick kickModule) {
+        super(kickModule);
+        kick = kickModule;
+    }
 
-	@RunAsync
-	public static class KickCmd extends BATCommand {
-		public KickCmd() {
-			super("kick", "<player> [reason]", "Kick the player from his current server to the lobby", Action.KICK
-					.getPermission());
-		}
+    @RunAsync
+    public static class KickCmd extends BATCommand {
+        public KickCmd() {
+            super("kick", "<player> [reason]", "Kick the player from his current server to the lobby", Action.KICK
+                .getPermission());
+        }
 
-		@Override
-		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
-				throws IllegalArgumentException {
-			if (args[0].equals("help")) {
-				try {
-					FormatUtils.showFormattedHelp(BAT.getInstance().getModules().getModule("kick").getCommands(),
-							sender, "KICK");
-				} catch (final InvalidModuleException e) {
-					e.printStackTrace();
-				}
-				return;
-			}
-                        
+        @Override
+        public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
+            throws IllegalArgumentException {
+            if (args[0].equals("help")) {
+                try {
+                    FormatUtils.showFormattedHelp(BAT.getInstance().getModules().getModule("kick").getCommands(),
+                        sender, "KICK");
+                } catch (final InvalidModuleException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
+
             checkArgument(args.length != 1 || !BAT.getInstance().getConfiguration().isMustGiveReason(),
                 tr_("noReasonInCommand"));
 
-			final String pName = args[0];
-	    	final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
-	    	// The player is online on the proxy
-	    	if(player != null){
-	    		final String pServer = player.getServer().getInfo().getName();
-   				checkArgument(
-					pServer != null && !pServer.equals(player.getPendingConnection().getListener().getDefaultServer()),
-					I18n.tr_("cantKickDefaultServer", new String[] { pName }));
+            final String pName = args[0];
+            final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
+            // The player is online on the proxy
+            if (player != null) {
+                final String pServer = player.getServer().getInfo().getName();
+                checkArgument(
+                    pServer != null && !pServer.equals(player.getPendingConnection().getListener().getDefaultServer()),
+                    I18n.tr_("cantKickDefaultServer", new String[]{pName}));
 
-   				checkArgument(
-					PermissionManager.canExecuteAction(Action.KICK, sender, player.getServer().getInfo().getName()),
-					tr_("noPerm"));
+                checkArgument(
+                    PermissionManager.canExecuteAction(Action.KICK, sender, player.getServer().getInfo().getName()),
+                    tr_("noPerm"));
 
-   				checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), tr_("isExempt"));
+                checkArgument(!PermissionManager.isExemptFrom(Action.KICK, pName), tr_("isExempt"));
 
-   				final String returnedMsg = kick.kick(player, sender.getName(),
-					(args.length == 1) ? IModule.NO_REASON : Utils.getFinalArg(args, 1));
-                if(broadcast){
-                  BAT.broadcast(returnedMsg, Action.KICK_BROADCAST.getPermission());
+                final String returnedMsg = kick.kick(player, sender.getName(),
+                    (args.length == 1) ? IModule.NO_REASON : Utils.getFinalArg(args, 1));
+                if (broadcast) {
+                    BAT.broadcast(returnedMsg, Action.KICK_BROADCAST.getPermission());
                 }
-	    	}else{
+            } else {
                 throw new IllegalArgumentException(tr_("playerNotFound"));
-	    	}
-		}
-	}
+            }
+        }
+    }
 
-	@RunAsync
-	public static class GKickCmd extends BATCommand {
-		public GKickCmd() {
-			super("gkick", "<player> [reason]", "Kick the player from the network", Action.KICK.getPermission()
-					+ ".global");
-		}
+    @RunAsync
+    public static class GKickCmd extends BATCommand {
+        public GKickCmd() {
+            super("gkick", "<player> [reason]", "Kick the player from the network", Action.KICK.getPermission()
+                + ".global");
+        }
 
-		@Override
-		public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
-				throws IllegalArgumentException {
-			final String pName = args[0];
-                        
+        @Override
+        public void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
+            throws IllegalArgumentException {
+            final String pName = args[0];
+
             checkArgument(args.length != 1 || !BAT.getInstance().getConfiguration().isMustGiveReason(),
-                    tr_("noReasonInCommand"));
+                tr_("noReasonInCommand"));
 
             final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
             checkArgument(player != null, tr_("playerNotFound"));
@@ -99,9 +99,9 @@ public class KickCommand extends CommandHandler {
             final String returnedMsg = kick.gKick(player, sender.getName(),
                 (args.length == 1) ? IModule.NO_REASON : Utils.getFinalArg(args, 1));
 
-            if(broadcast){
+            if (broadcast) {
                 BAT.broadcast(returnedMsg, Action.KICK_BROADCAST.getPermission());
             }
-		}
-	}
+        }
+    }
 }

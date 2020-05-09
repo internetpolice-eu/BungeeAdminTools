@@ -137,6 +137,7 @@ public class BAT extends Plugin {
 
     /**
      * Gets the configured default server for the given {@link ProxiedPlayer}.
+     *
      * @param player Player to get default server for.
      * @return Default server for the given player.
      */
@@ -146,6 +147,7 @@ public class BAT extends Plugin {
 
     /**
      * Sends the given {@link ProxiedPlayer} to the default server / the server with highest priority.
+     *
      * @param player Player to send.
      */
     public void sendToDefaultServer(ProxiedPlayer player) {

@@ -36,599 +36,583 @@ import fr.Alphart.BAT.database.DataSourceHandler;
 import fr.Alphart.BAT.database.SQLQueries;
 
 public class Ban implements IModule, Listener {
-	private final String name = "ban";
-	private ScheduledTask task;
-	private BanCommand commandHandler;
-	private final BanConfig config;
-	private final BAT plugin;
+    private final String name = "ban";
+    private ScheduledTask task;
+    private BanCommand commandHandler;
+    private final BanConfig config;
+    private final BAT plugin;
 
-	public Ban(BAT plugin) {
+    public Ban(BAT plugin) {
         this.plugin = plugin;
-		config = new BanConfig();
-	}
+        config = new BanConfig();
+    }
 
-	@Override
-	public List<BATCommand> getCommands() {
-		return commandHandler.getCmds();
-	}
+    @Override
+    public List<BATCommand> getCommands() {
+        return commandHandler.getCmds();
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public String getMainCommand() {
-		return "ban";
-	}
+    @Override
+    public String getMainCommand() {
+        return "ban";
+    }
 
-	@Override
-	public ModuleConfiguration getConfig() {
-		return config;
-	}
+    @Override
+    public ModuleConfiguration getConfig() {
+        return config;
+    }
 
-	@Override
-	public boolean load() {
-		// Init table
-		try (Connection conn = BAT.getConnection()) {
-			final Statement statement = conn.createStatement();
+    @Override
+    public boolean load() {
+        // Init table
+        try (Connection conn = BAT.getConnection()) {
+            final Statement statement = conn.createStatement();
             statement.executeUpdate(SQLQueries.Ban.createTable);
-			statement.close();
-		} catch (final SQLException e) {
-			DataSourceHandler.handleException(e);
-		}
+            statement.close();
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        }
 
-		// Register commands
-		commandHandler = new BanCommand(this);
-		commandHandler.loadCmds();
+        // Register commands
+        commandHandler = new BanCommand(this);
+        commandHandler.loadCmds();
 
-		// Launch tempban task
-		final BanExpirationTask banExpirationTask = new BanExpirationTask(this, plugin);
-		task = ProxyServer.getInstance().getScheduler().schedule(BAT.getInstance(), banExpirationTask, 0, 10, TimeUnit.SECONDS);
+        // Launch tempban task
+        final BanExpirationTask banExpirationTask = new BanExpirationTask(this, plugin);
+        task = ProxyServer.getInstance().getScheduler().schedule(BAT.getInstance(), banExpirationTask, 0, 10, TimeUnit.SECONDS);
 
-		// Check if the online players are banned (if the module has been reloaded)
-		for(final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()){
-			final List<String> serversToCheck = player.getServer() != null
-			        ? Arrays.asList(player.getServer().getInfo().getName(), GLOBAL_SERVER)
-	                : Arrays.asList(GLOBAL_SERVER);
-			for(final String server : serversToCheck){
-				if(isBan(player, server)){
-					if (server.equals(player.getPendingConnection().getListener().getServerPriority().get(0)) ||
+        // Check if the online players are banned (if the module has been reloaded)
+        for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+            final List<String> serversToCheck = player.getServer() != null
+                ? Arrays.asList(player.getServer().getInfo().getName(), GLOBAL_SERVER)
+                : Arrays.asList(GLOBAL_SERVER);
+            for (final String server : serversToCheck) {
+                if (isBan(player, server)) {
+                    if (server.equals(player.getPendingConnection().getListener().getServerPriority().get(0)) ||
                         server.equals(GLOBAL_SERVER)) {
-						player.disconnect(getBanMessage(player.getPendingConnection(), server));
-						continue;
-					}
-					player.sendMessage(getBanMessage(player.getPendingConnection(), server));
-					plugin.sendToDefaultServer(player);
-				}
-			}
-		}
+                        player.disconnect(getBanMessage(player.getPendingConnection(), server));
+                        continue;
+                    }
+                    player.sendMessage(getBanMessage(player.getPendingConnection(), server));
+                    plugin.sendToDefaultServer(player);
+                }
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public boolean unload() {
-		task.cancel();
-		return true;
-	}
+    @Override
+    public boolean unload() {
+        task.cancel();
+        return true;
+    }
 
-	public class BanConfig extends ModuleConfiguration {
-		public BanConfig() {
-			init(name);
-		}
-	}
+    public class BanConfig extends ModuleConfiguration {
+        public BanConfig() {
+            init(name);
+        }
+    }
 
-	public BaseComponent[] getBanMessage(final PendingConnection pConn, final String server){
-		String reason = "";
-		Timestamp expiration = null;
-		Timestamp begin = null;
-		String staff = null;
-		
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try (Connection conn = BAT.getConnection()) {
-			statement = conn.prepareStatement(SQLQueries.Ban.getBanMessage);
-			try{
-				final String pUUID;
-	        	if(pConn.getUniqueId() != null && ProxyServer.getInstance().getConfig().isOnlineMode()){
-	        		pUUID = pConn.getUniqueId().toString().replace("-", "");
-	        	}
-	        	else{
-	        		pUUID = Utils.getOfflineUUID(pConn.getName());
-	        	}
-				statement.setString(1, pUUID);
-				statement.setString(2, pConn.getAddress().getAddress().getHostAddress());
-				statement.setString(3, server);
-			}catch(final UUIDNotFoundException e){
-				BAT.getInstance().getLogger().severe("Error during retrieving of the UUID of " + pConn.getName() + ". Please report this error :");
-				e.printStackTrace();
-			}
-			resultSet = statement.executeQuery();
-			
-			if(resultSet.next()) {
+    public BaseComponent[] getBanMessage(final PendingConnection pConn, final String server) {
+        String reason = "";
+        Timestamp expiration = null;
+        Timestamp begin = null;
+        String staff = null;
+
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try (Connection conn = BAT.getConnection()) {
+            statement = conn.prepareStatement(SQLQueries.Ban.getBanMessage);
+            try {
+                final String pUUID;
+                if (pConn.getUniqueId() != null && ProxyServer.getInstance().getConfig().isOnlineMode()) {
+                    pUUID = pConn.getUniqueId().toString().replace("-", "");
+                } else {
+                    pUUID = Utils.getOfflineUUID(pConn.getName());
+                }
+                statement.setString(1, pUUID);
+                statement.setString(2, pConn.getAddress().getAddress().getHostAddress());
+                statement.setString(3, server);
+            } catch (final UUIDNotFoundException e) {
+                BAT.getInstance().getLogger().severe("Error during retrieving of the UUID of " + pConn.getName() + ". Please report this error :");
+                e.printStackTrace();
+            }
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
                 begin = resultSet.getTimestamp("ban_begin");
                 expiration = resultSet.getTimestamp("ban_end");
-				reason = (resultSet.getString("ban_reason") != null) ? resultSet.getString("ban_reason") : IModule.NO_REASON;
-				staff = resultSet.getString("ban_staff");
-			}else{
-				throw new SQLException("No active ban found.");
-			}
-		} catch (final SQLException e) {
-			DataSourceHandler.handleException(e);
-		} finally {
-			DataSourceHandler.close(statement, resultSet);
-		}
-		if(expiration != null){
-			return TextComponent.fromLegacyText(I18n.tr_("isBannedTemp",
-					new String[]{ reason, (expiration.getTime() < System.currentTimeMillis()) ? "a few moments" : FormatUtils.getDuration(expiration.getTime()),
-							Core.defaultDF.format(begin), staff }));
-		}else{
-			return TextComponent.fromLegacyText(I18n.tr_("isBanned", new String[]{ reason, Core.defaultDF.format(begin), staff }));
-		}
-	}
-	
-	/**
-	 * Check if both ip and name of this player are banned
-	 * 
-	 * @param player
-	 * @param server
-	 * @return true if name or ip is banned
-	 */
-	public boolean isBan(final ProxiedPlayer player, final String server) {
-		final String ip = Core.getPlayerIP(player.getName());
-		if (isBan(player.getName(), server) || isBan(ip, server)) {
-			return true;
-		}
-		return false;
-	}
+                reason = (resultSet.getString("ban_reason") != null) ? resultSet.getString("ban_reason") : IModule.NO_REASON;
+                staff = resultSet.getString("ban_staff");
+            } else {
+                throw new SQLException("No active ban found.");
+            }
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement, resultSet);
+        }
+        if (expiration != null) {
+            return TextComponent.fromLegacyText(I18n.tr_("isBannedTemp",
+                new String[]{reason, (expiration.getTime() < System.currentTimeMillis()) ? "a few moments" : FormatUtils.getDuration(expiration.getTime()),
+                    Core.defaultDF.format(begin), staff}));
+        } else {
+            return TextComponent.fromLegacyText(I18n.tr_("isBanned", new String[]{reason, Core.defaultDF.format(begin), staff}));
+        }
+    }
 
-	/**
-	 * Check if this entity (player or ip) is banned
-	 * 
-	 * @param bannedEntity
-	 *            | can be an ip or a player name
-	 * @param server
-	 *            | if server equals to (any) check if the player is ban on a
-	 *            server
-	 */
-	public boolean isBan(final String bannedEntity, final String server) {
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try (Connection conn = BAT.getConnection()) {
-			// If this is an ip which may be banned
-			if (Utils.validIP(bannedEntity)) {
-				final String ip = bannedEntity;
-				statement = conn.prepareStatement((ANY_SERVER.equals(server)) ? SQLQueries.Ban.isBanIP
-						: SQLQueries.Ban.isBanServerIP);
-				statement.setString(1, ip);
-				if (!ANY_SERVER.equals(server)) {
-					statement.setString(2, server);
-				}
-			}
-			// If this is a player which may be banned
-			else {
-				final String pName = bannedEntity;
-				final String uuid = Core.getUUID(pName);
-				statement = conn.prepareStatement((ANY_SERVER.equals(server)) ? SQLQueries.Ban.isBan
-						: SQLQueries.Ban.isBanServer);
-				statement.setString(1, uuid);
-				if (!ANY_SERVER.equals(server)) {
-					statement.setString(2, server);
-				}
-			}
-			resultSet = statement.executeQuery();
+    /**
+     * Check if both ip and name of this player are banned
+     *
+     * @param player
+     * @param server
+     * @return true if name or ip is banned
+     */
+    public boolean isBan(final ProxiedPlayer player, final String server) {
+        final String ip = Core.getPlayerIP(player.getName());
+        if (isBan(player.getName(), server) || isBan(ip, server)) {
+            return true;
+        }
+        return false;
+    }
 
-			// If there are a result
-			if (resultSet.next()) {
-				return true;
-			}
+    /**
+     * Check if this entity (player or ip) is banned
+     *
+     * @param bannedEntity | can be an ip or a player name
+     * @param server       | if server equals to (any) check if the player is ban on a
+     *                     server
+     */
+    public boolean isBan(final String bannedEntity, final String server) {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try (Connection conn = BAT.getConnection()) {
+            // If this is an ip which may be banned
+            if (Utils.validIP(bannedEntity)) {
+                final String ip = bannedEntity;
+                statement = conn.prepareStatement((ANY_SERVER.equals(server)) ? SQLQueries.Ban.isBanIP
+                    : SQLQueries.Ban.isBanServerIP);
+                statement.setString(1, ip);
+                if (!ANY_SERVER.equals(server)) {
+                    statement.setString(2, server);
+                }
+            }
+            // If this is a player which may be banned
+            else {
+                final String pName = bannedEntity;
+                final String uuid = Core.getUUID(pName);
+                statement = conn.prepareStatement((ANY_SERVER.equals(server)) ? SQLQueries.Ban.isBan
+                    : SQLQueries.Ban.isBanServer);
+                statement.setString(1, uuid);
+                if (!ANY_SERVER.equals(server)) {
+                    statement.setString(2, server);
+                }
+            }
+            resultSet = statement.executeQuery();
 
-		} catch (final SQLException e) {
-			DataSourceHandler.handleException(e);
-		} finally {
-			DataSourceHandler.close(statement, resultSet);
-		}
-		return false;
-	}
+            // If there are a result
+            if (resultSet.next()) {
+                return true;
+            }
 
-	/**
-	 * Ban this entity (player or ip) <br>
-	 * 
-	 * @param bannedEntity
-	 *            | can be an ip or a player name
-	 * @param server
-	 *            ; set to "(global)", to global ban
-	 * @param staff
-	 * @param expirationTimestamp
-	 *            ; set to 0 for ban def
-	 * @param reason
-	 *            | optional
-	 * @return
-	 */
-	public String ban(final String bannedEntity, final String server, final String staff,
-			final long expirationTimestamp, final String reason) {
-		try (Connection conn = BAT.getConnection()) {
-			// If the bannedEntity is an ip
-			if (Utils.validIP(bannedEntity)) {
-				final String ip = bannedEntity;
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement, resultSet);
+        }
+        return false;
+    }
 
-				final PreparedStatement statement = conn.prepareStatement(SQLQueries.Ban.createBanIP);
-				statement.setString(1, ip);
-				statement.setString(2, staff);
-				statement.setString(3, server);
-				statement.setTimestamp(4, (expirationTimestamp > 0) ? new Timestamp(expirationTimestamp) : null);
-				statement.setString(5, (NO_REASON.equals(reason)) ? null : reason);
-				statement.executeUpdate();
-				statement.close();
+    /**
+     * Ban this entity (player or ip) <br>
+     *
+     * @param bannedEntity        | can be an ip or a player name
+     * @param server              ; set to "(global)", to global ban
+     * @param staff
+     * @param expirationTimestamp ; set to 0 for ban def
+     * @param reason              | optional
+     * @return
+     */
+    public String ban(final String bannedEntity, final String server, final String staff,
+                      final long expirationTimestamp, final String reason) {
+        try (Connection conn = BAT.getConnection()) {
+            // If the bannedEntity is an ip
+            if (Utils.validIP(bannedEntity)) {
+                final String ip = bannedEntity;
 
-				for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-					if (Utils.getPlayerIP(player).equals(ip) && (GLOBAL_SERVER.equals(server) || server.equalsIgnoreCase(player.getServer().getInfo().getName())) ) {
-						BAT.kick(player, I18n.tr_("wasBannedNotif", new String[] { reason }));
-					}
-				}
+                final PreparedStatement statement = conn.prepareStatement(SQLQueries.Ban.createBanIP);
+                statement.setString(1, ip);
+                statement.setString(2, staff);
+                statement.setString(3, server);
+                statement.setTimestamp(4, (expirationTimestamp > 0) ? new Timestamp(expirationTimestamp) : null);
+                statement.setString(5, (NO_REASON.equals(reason)) ? null : reason);
+                statement.executeUpdate();
+                statement.close();
 
-				if (expirationTimestamp > 0) {
-					return I18n.tr_("banTempBroadcast", new String[] { ip, FormatUtils.getDuration(expirationTimestamp),
-							staff, server, reason });
-				} else {
-					return I18n.tr_("banBroadcast", new String[] { ip, staff, server, reason });
-				}
-			}
+                for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                    if (Utils.getPlayerIP(player).equals(ip) && (GLOBAL_SERVER.equals(server) || server.equalsIgnoreCase(player.getServer().getInfo().getName()))) {
+                        BAT.kick(player, I18n.tr_("wasBannedNotif", new String[]{reason}));
+                    }
+                }
 
-			// Otherwise it's a player
-			else {
-				final String pName = bannedEntity;
-				final String sUUID = Core.getUUID(pName);
-				final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
-				final PreparedStatement statement = conn.prepareStatement(SQLQueries.Ban.createBan);
-				statement.setString(1, sUUID);
-				statement.setString(2, staff);
-				statement.setString(3, server);
-				statement.setTimestamp(4, (expirationTimestamp > 0) ? new Timestamp(expirationTimestamp) : null);
-				statement.setString(5, (NO_REASON.equals(reason)) ? null : reason);
-				statement.executeUpdate();
-				statement.close();
+                if (expirationTimestamp > 0) {
+                    return I18n.tr_("banTempBroadcast", new String[]{ip, FormatUtils.getDuration(expirationTimestamp),
+                        staff, server, reason});
+                } else {
+                    return I18n.tr_("banBroadcast", new String[]{ip, staff, server, reason});
+                }
+            }
 
-				// Kick player if he's online and on the server where he's
-				// banned
-				if (player != null
-						&& (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server))) {
-					BAT.kick(player, I18n.tr_("wasBannedNotif", new String[] { reason }));
-				}
+            // Otherwise it's a player
+            else {
+                final String pName = bannedEntity;
+                final String sUUID = Core.getUUID(pName);
+                final ProxiedPlayer player = ProxyServer.getInstance().getPlayer(pName);
+                final PreparedStatement statement = conn.prepareStatement(SQLQueries.Ban.createBan);
+                statement.setString(1, sUUID);
+                statement.setString(2, staff);
+                statement.setString(3, server);
+                statement.setTimestamp(4, (expirationTimestamp > 0) ? new Timestamp(expirationTimestamp) : null);
+                statement.setString(5, (NO_REASON.equals(reason)) ? null : reason);
+                statement.executeUpdate();
+                statement.close();
 
-				if (expirationTimestamp > 0) {
-					return I18n.tr_("banTempBroadcast", new String[] { pName, FormatUtils.getDuration(expirationTimestamp),
-							staff, server, reason });
-				} else {
-					return I18n.tr_("banBroadcast", new String[] { pName, staff, server, reason });
-				}
-			}
-		} catch (final SQLException e) {
-			return DataSourceHandler.handleException(e);
-		}
-	}
+                // Kick player if he's online and on the server where he's
+                // banned
+                if (player != null
+                    && (server.equals(GLOBAL_SERVER) || player.getServer().getInfo().getName().equalsIgnoreCase(server))) {
+                    BAT.kick(player, I18n.tr_("wasBannedNotif", new String[]{reason}));
+                }
 
-	/**
-	 * Ban the ip of an online player
-	 *
-	 * @param server
-	 *            ; set to "(global)", to global ban
-	 * @param staff
-	 * @param expirationTimestamp
-	 *            ; set to 0 for ban def
-	 * @param reason
-	 *            | optional
-	 */
-	public String banIP(final ProxiedPlayer player, final String server, final String staff,
-			final long expirationTimestamp, final String reason) {
-		ban(Utils.getPlayerIP(player), server, staff, expirationTimestamp, reason);
-		return I18n.tr_("banBroadcast", new String[] { player.getName() + "'s IP", staff, server, reason });
-	}
+                if (expirationTimestamp > 0) {
+                    return I18n.tr_("banTempBroadcast", new String[]{pName, FormatUtils.getDuration(expirationTimestamp),
+                        staff, server, reason});
+                } else {
+                    return I18n.tr_("banBroadcast", new String[]{pName, staff, server, reason});
+                }
+            }
+        } catch (final SQLException e) {
+            return DataSourceHandler.handleException(e);
+        }
+    }
 
-	public String banRedisIP(final UUID pUUID, final String server, final String staff,
-			final long expirationTimestamp, final String reason)
-    {
-	    	    	return null;
-	}
+    /**
+     * Ban the ip of an online player
+     *
+     * @param server              ; set to "(global)", to global ban
+     * @param staff
+     * @param expirationTimestamp ; set to 0 for ban def
+     * @param reason              | optional
+     */
+    public String banIP(final ProxiedPlayer player, final String server, final String staff,
+                        final long expirationTimestamp, final String reason) {
+        ban(Utils.getPlayerIP(player), server, staff, expirationTimestamp, reason);
+        return I18n.tr_("banBroadcast", new String[]{player.getName() + "'s IP", staff, server, reason});
+    }
 
-	/**
-	 * Unban an entity (player or ip)
-	 * 
-	 * @param bannedEntity
-	 *            | can be an ip or a player name
-	 * @param server
-	 *            | if equals to (any), unban from all servers | if equals to
-	 *            (global), remove global ban
-	 * @param staff
-	 * @param reason
-	 */
-	public String unBan(final String bannedEntity, final String server, final String staff, final String reason) {
-		PreparedStatement statement = null;
-		try (Connection conn = BAT.getConnection()) {
-			// If the bannedEntity is an ip
-			if (Utils.validIP(bannedEntity)) {
-				final String ip = bannedEntity;
-				if (ANY_SERVER.equals(server)) {
-					statement = conn.prepareStatement(SQLQueries.Ban.unBanIP);
-					statement.setString(1, reason);
-					statement.setString(2, staff);
-					statement.setString(3, ip);
-				} else {
-					statement = conn.prepareStatement(SQLQueries.Ban.unBanIPServer);
-							statement.setString(1, reason);
-							statement.setString(2, staff);
-							statement.setString(3, ip);
-							statement.setString(4, server);
-				}
-				statement.executeUpdate();
+    public String banRedisIP(final UUID pUUID, final String server, final String staff,
+                             final long expirationTimestamp, final String reason) {
+        return null;
+    }
 
-				return I18n.tr_("unbanBroadcast", new String[] { ip, staff, server, reason });
-			}
+    /**
+     * Unban an entity (player or ip)
+     *
+     * @param bannedEntity | can be an ip or a player name
+     * @param server       | if equals to (any), unban from all servers | if equals to
+     *                     (global), remove global ban
+     * @param staff
+     * @param reason
+     */
+    public String unBan(final String bannedEntity, final String server, final String staff, final String reason) {
+        PreparedStatement statement = null;
+        try (Connection conn = BAT.getConnection()) {
+            // If the bannedEntity is an ip
+            if (Utils.validIP(bannedEntity)) {
+                final String ip = bannedEntity;
+                if (ANY_SERVER.equals(server)) {
+                    statement = conn.prepareStatement(SQLQueries.Ban.unBanIP);
+                    statement.setString(1, reason);
+                    statement.setString(2, staff);
+                    statement.setString(3, ip);
+                } else {
+                    statement = conn.prepareStatement(SQLQueries.Ban.unBanIPServer);
+                    statement.setString(1, reason);
+                    statement.setString(2, staff);
+                    statement.setString(3, ip);
+                    statement.setString(4, server);
+                }
+                statement.executeUpdate();
 
-			// Otherwise it's a player
-			else {
-				final String pName = bannedEntity;
-				final String UUID = Core.getUUID(pName);
-				if (ANY_SERVER.equals(server)) {
-					statement = conn.prepareStatement(SQLQueries.Ban.unBan);
-					statement.setString(1, reason);
-					statement.setString(2, staff);
-					statement.setString(3, UUID);
-				} else {
-					statement = conn.prepareStatement(SQLQueries.Ban.unBanServer);
-							statement.setString(1, reason);
-							statement.setString(2, staff);
-							statement.setString(3, UUID);
-							statement.setString(4, server);
-				}
-				statement.executeUpdate();
+                return I18n.tr_("unbanBroadcast", new String[]{ip, staff, server, reason});
+            }
 
-				return I18n.tr_("unbanBroadcast", new String[] { pName, staff, server, reason });
-			}
-		} catch (final SQLException e) {
-			return DataSourceHandler.handleException(e);
-		} finally {
-			DataSourceHandler.close(statement);
-		}
+            // Otherwise it's a player
+            else {
+                final String pName = bannedEntity;
+                final String UUID = Core.getUUID(pName);
+                if (ANY_SERVER.equals(server)) {
+                    statement = conn.prepareStatement(SQLQueries.Ban.unBan);
+                    statement.setString(1, reason);
+                    statement.setString(2, staff);
+                    statement.setString(3, UUID);
+                } else {
+                    statement = conn.prepareStatement(SQLQueries.Ban.unBanServer);
+                    statement.setString(1, reason);
+                    statement.setString(2, staff);
+                    statement.setString(3, UUID);
+                    statement.setString(4, server);
+                }
+                statement.executeUpdate();
 
-	}
+                return I18n.tr_("unbanBroadcast", new String[]{pName, staff, server, reason});
+            }
+        } catch (final SQLException e) {
+            return DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement);
+        }
 
-	/**
-	 * Unban the ip of this entity
-	 * 
-	 * @param entity
-	 * @param server
-	 *            | if equals to (any), unban from all servers | if equals to
-	 *            (global), remove global ban
-	 * @param staff
-	 * @param reason
-	 *            | optional
-	 */
-	public String unBanIP(final String entity, final String server, final String staff, final String reason) {
-		if (Utils.validIP(entity)) {
-			return unBan(entity, server, staff, reason);
-		} else {
-			unBan(Core.getPlayerIP(entity), server, staff, reason);
-			return I18n.tr_("unbanBroadcast", new String[] { entity + "'s IP", staff, server, reason });
-		}
-	}
+    }
 
-	/**
-	 * Get all ban data of an entity <br>
-	 * <b>Should be runned async to optimize performance</b>
-	 * 
-	 * @param entity
-	 * @return List of BanEntry of the player
-	 */
-	public List<BanEntry> getBanData(final String entity) {
-		final List<BanEntry> banList = new ArrayList<>();
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try (Connection conn = BAT.getConnection()) {
-			// If the entity is an ip
-			if (Utils.validIP(entity)) {
-				statement = conn.prepareStatement(SQLQueries.Ban.getBanIP);
-				statement.setString(1, entity);
-				resultSet = statement.executeQuery();
-			}
-			// Otherwise if it's a player
-			else {
-				statement = conn.prepareStatement(SQLQueries.Ban.getBan);
-				statement.setString(1, Core.getUUID(entity));
-				resultSet = statement.executeQuery();
-			}
-			
-			while (resultSet.next()) {
-				final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
-				final Timestamp endDate = resultSet.getTimestamp("ban_end");
-				final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
-				
-				// Make it compatible with sqlite (date: get an int with the sfrt and then construct a tiemstamp)
-				final String server = resultSet.getString("ban_server");
-				String reason = resultSet.getString("ban_reason");
-				if(reason == null){
-					reason = NO_REASON;
-				}
-				final String staff = resultSet.getString("ban_staff");
-				final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
-				String unbanReason = resultSet.getString("ban_unbanreason");
-				if(unbanReason == null){
-					unbanReason = NO_REASON;
-				}
-				final String unbanStaff = resultSet.getString("ban_unbanstaff");
-				banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
-			}
-		} catch (final SQLException e) {
-			DataSourceHandler.handleException(e);
-		} finally {
-			DataSourceHandler.close(statement, resultSet);
-		}
-		return banList;
-	}
+    /**
+     * Unban the ip of this entity
+     *
+     * @param entity
+     * @param server | if equals to (any), unban from all servers | if equals to
+     *               (global), remove global ban
+     * @param staff
+     * @param reason | optional
+     */
+    public String unBanIP(final String entity, final String server, final String staff, final String reason) {
+        if (Utils.validIP(entity)) {
+            return unBan(entity, server, staff, reason);
+        } else {
+            unBan(Core.getPlayerIP(entity), server, staff, reason);
+            return I18n.tr_("unbanBroadcast", new String[]{entity + "'s IP", staff, server, reason});
+        }
+    }
 
-	public List<BanEntry> getManagedBan(final String staff){
-		final List<BanEntry> banList = new ArrayList<>();
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
-		try (Connection conn = BAT.getConnection()) {
-			statement = conn.prepareStatement(SQLQueries.Ban.getManagedBan);
-			statement.setString(1, staff);
-			statement.setString(2, staff);
-			resultSet = statement.executeQuery();
-			
-			while (resultSet.next()) {
-				final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
-				final Timestamp endDate = resultSet.getTimestamp("ban_end");
-				final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
-				
-				// Make it compatible with sqlite (date: get an int with the sfrt and then construct a tiemstamp)
-				final String server = resultSet.getString("ban_server");
-				String reason = resultSet.getString("ban_reason");
-				if(reason == null){
-					reason = NO_REASON;
-				}
-				String entity = (resultSet.getString("ban_ip") != null) 
-						? resultSet.getString("ban_ip")
-						: Core.getPlayerName(resultSet.getString("UUID"));
-				// If the UUID search failed
-				if(entity == null){
-					entity = "UUID:" + resultSet.getString("UUID");
-				}
-				final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
-				String unbanReason = resultSet.getString("ban_unbanreason");
-				if(unbanReason == null){
-					unbanReason = NO_REASON;
-				}
-				final String unbanStaff = resultSet.getString("ban_unbanstaff");
-				banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
-			}
-		} catch (final SQLException e) {
-			DataSourceHandler.handleException(e);
-		} finally {
-			DataSourceHandler.close(statement, resultSet);
-		}
-		return banList;
-	}
-	
-	/**
-	 * @param amount
-	 * @param startIndex
-	 * @return Return <i>amount</i> ban entries starting from the <i>startIndex</i>th one, sorted by date
-	 */
-	public List<BanEntry> getBans(int amount, int startIndex){
-	  final List<BanEntry> banList = new ArrayList<>();
-      PreparedStatement statement = null;
-      ResultSet resultSet = null;
-      try (Connection conn = BAT.getConnection()) {
-          statement = conn.prepareStatement("SELECT * FROM `BAT_ban` ORDER BY ban_begin DESC LIMIT ? OFFSET ?;");
-          statement.setInt(1, amount);
-          statement.setInt(2, startIndex);
-          resultSet = statement.executeQuery();
-          
-          while (resultSet.next()) {
-              final String staff = resultSet.getString("ban_staff");
-              final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
-              final Timestamp endDate = resultSet.getTimestamp("ban_end");
-              final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
+    /**
+     * Get all ban data of an entity <br>
+     * <b>Should be runned async to optimize performance</b>
+     *
+     * @param entity
+     * @return List of BanEntry of the player
+     */
+    public List<BanEntry> getBanData(final String entity) {
+        final List<BanEntry> banList = new ArrayList<>();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try (Connection conn = BAT.getConnection()) {
+            // If the entity is an ip
+            if (Utils.validIP(entity)) {
+                statement = conn.prepareStatement(SQLQueries.Ban.getBanIP);
+                statement.setString(1, entity);
+                resultSet = statement.executeQuery();
+            }
+            // Otherwise if it's a player
+            else {
+                statement = conn.prepareStatement(SQLQueries.Ban.getBan);
+                statement.setString(1, Core.getUUID(entity));
+                resultSet = statement.executeQuery();
+            }
 
-              final String server = resultSet.getString("ban_server");
-              String reason = resultSet.getString("ban_reason");
-              if(reason == null){
-                  reason = NO_REASON;
-              }
-              String entity = (resultSet.getString("ban_ip") != null) 
-                      ? resultSet.getString("ban_ip")
-                      : Core.getPlayerName(resultSet.getString("UUID"));
-              // If the UUID search failed
-              if(entity == null){
-                  entity = "UUID:" + resultSet.getString("UUID");
-              }
-              final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
-              String unbanReason = resultSet.getString("ban_unbanreason");
-              if(unbanReason == null){
-                  unbanReason = NO_REASON;
-              }
-              final String unbanStaff = resultSet.getString("ban_unbanstaff");
-              banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
-          }
-      } catch (final SQLException e) {
-          DataSourceHandler.handleException(e);
-      } finally {
-          DataSourceHandler.close(statement, resultSet);
-      }
-      return banList;
-	}
-	
-	// Event listener
-	@EventHandler
-	public void onServerConnect(final ServerConnectEvent e) {
-		final ProxiedPlayer player = e.getPlayer();
-		final String target = e.getTarget().getName();
+            while (resultSet.next()) {
+                final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
+                final Timestamp endDate = resultSet.getTimestamp("ban_end");
+                final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
 
-		if (isBan(player, target)) {
-			if (target.equals(plugin.getDefaultServer(player))) {
-				// If it's player's join server kick him
-				if(e.getPlayer().getServer() == null){
-					e.setCancelled(true);
-					// Need to delay for avoiding the "bit cannot be cast to fm exception" and to annoy the banned player :p
-					plugin.getProxy().getScheduler().schedule(plugin, () ->
+                // Make it compatible with sqlite (date: get an int with the sfrt and then construct a tiemstamp)
+                final String server = resultSet.getString("ban_server");
+                String reason = resultSet.getString("ban_reason");
+                if (reason == null) {
+                    reason = NO_REASON;
+                }
+                final String staff = resultSet.getString("ban_staff");
+                final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
+                String unbanReason = resultSet.getString("ban_unbanreason");
+                if (unbanReason == null) {
+                    unbanReason = NO_REASON;
+                }
+                final String unbanStaff = resultSet.getString("ban_unbanstaff");
+                banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
+            }
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement, resultSet);
+        }
+        return banList;
+    }
+
+    public List<BanEntry> getManagedBan(final String staff) {
+        final List<BanEntry> banList = new ArrayList<>();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try (Connection conn = BAT.getConnection()) {
+            statement = conn.prepareStatement(SQLQueries.Ban.getManagedBan);
+            statement.setString(1, staff);
+            statement.setString(2, staff);
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
+                final Timestamp endDate = resultSet.getTimestamp("ban_end");
+                final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
+
+                // Make it compatible with sqlite (date: get an int with the sfrt and then construct a tiemstamp)
+                final String server = resultSet.getString("ban_server");
+                String reason = resultSet.getString("ban_reason");
+                if (reason == null) {
+                    reason = NO_REASON;
+                }
+                String entity = (resultSet.getString("ban_ip") != null)
+                    ? resultSet.getString("ban_ip")
+                    : Core.getPlayerName(resultSet.getString("UUID"));
+                // If the UUID search failed
+                if (entity == null) {
+                    entity = "UUID:" + resultSet.getString("UUID");
+                }
+                final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
+                String unbanReason = resultSet.getString("ban_unbanreason");
+                if (unbanReason == null) {
+                    unbanReason = NO_REASON;
+                }
+                final String unbanStaff = resultSet.getString("ban_unbanstaff");
+                banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
+            }
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement, resultSet);
+        }
+        return banList;
+    }
+
+    /**
+     * @param amount
+     * @param startIndex
+     * @return Return <i>amount</i> ban entries starting from the <i>startIndex</i>th one, sorted by date
+     */
+    public List<BanEntry> getBans(int amount, int startIndex) {
+        final List<BanEntry> banList = new ArrayList<>();
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try (Connection conn = BAT.getConnection()) {
+            statement = conn.prepareStatement("SELECT * FROM `BAT_ban` ORDER BY ban_begin DESC LIMIT ? OFFSET ?;");
+            statement.setInt(1, amount);
+            statement.setInt(2, startIndex);
+            resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                final String staff = resultSet.getString("ban_staff");
+                final Timestamp beginDate = resultSet.getTimestamp("ban_begin");
+                final Timestamp endDate = resultSet.getTimestamp("ban_end");
+                final Timestamp unbanDate = resultSet.getTimestamp("ban_unbandate");
+
+                final String server = resultSet.getString("ban_server");
+                String reason = resultSet.getString("ban_reason");
+                if (reason == null) {
+                    reason = NO_REASON;
+                }
+                String entity = (resultSet.getString("ban_ip") != null)
+                    ? resultSet.getString("ban_ip")
+                    : Core.getPlayerName(resultSet.getString("UUID"));
+                // If the UUID search failed
+                if (entity == null) {
+                    entity = "UUID:" + resultSet.getString("UUID");
+                }
+                final boolean active = (resultSet.getBoolean("ban_state") ? true : false);
+                String unbanReason = resultSet.getString("ban_unbanreason");
+                if (unbanReason == null) {
+                    unbanReason = NO_REASON;
+                }
+                final String unbanStaff = resultSet.getString("ban_unbanstaff");
+                banList.add(new BanEntry(entity, server, reason, staff, beginDate, endDate, unbanDate, unbanReason, unbanStaff, active));
+            }
+        } catch (final SQLException e) {
+            DataSourceHandler.handleException(e);
+        } finally {
+            DataSourceHandler.close(statement, resultSet);
+        }
+        return banList;
+    }
+
+    // Event listener
+    @EventHandler
+    public void onServerConnect(final ServerConnectEvent e) {
+        final ProxiedPlayer player = e.getPlayer();
+        final String target = e.getTarget().getName();
+
+        if (isBan(player, target)) {
+            if (target.equals(plugin.getDefaultServer(player))) {
+                // If it's player's join server kick him
+                if (e.getPlayer().getServer() == null) {
+                    e.setCancelled(true);
+                    // Need to delay for avoiding the "bit cannot be cast to fm exception" and to annoy the banned player :p
+                    plugin.getProxy().getScheduler().schedule(plugin, () ->
                         e.getPlayer().disconnect(getBanMessage(player.getPendingConnection(), target)
-                    ), 500, TimeUnit.MILLISECONDS);
-				}else{
-					e.setCancelled(true);
-					e.getPlayer().sendMessage(getBanMessage(player.getPendingConnection(), target));
-				}
-				return;
-			}
-			player.sendMessage(getBanMessage(player.getPendingConnection(), target));
-			if (player.getServer() == null) {
-				player.connect(plugin.getProxy().getServerInfo(plugin.getDefaultServer(player)));
-			}
-			e.setCancelled(true);
-		}
-	}
+                        ), 500, TimeUnit.MILLISECONDS);
+                } else {
+                    e.setCancelled(true);
+                    e.getPlayer().sendMessage(getBanMessage(player.getPendingConnection(), target));
+                }
+                return;
+            }
+            player.sendMessage(getBanMessage(player.getPendingConnection(), target));
+            if (player.getServer() == null) {
+                player.connect(plugin.getProxy().getServerInfo(plugin.getDefaultServer(player)));
+            }
+            e.setCancelled(true);
+        }
+    }
 
-	@EventHandler
-	public void onPlayerLogin(final LoginEvent ev) {
-		ev.registerIntent(plugin);
-	    plugin.getProxy().getScheduler().runAsync(BAT.getInstance(), new Runnable()
-	    {
-	      public void run() {
-	        boolean isBanPlayer = false;
+    @EventHandler
+    public void onPlayerLogin(final LoginEvent ev) {
+        ev.registerIntent(plugin);
+        plugin.getProxy().getScheduler().runAsync(BAT.getInstance(), new Runnable() {
+            public void run() {
+                boolean isBanPlayer = false;
 
-	        PreparedStatement statement = null;
-	        ResultSet resultSet = null;
-	        String uuid;
-	        try(Connection conn = BAT.getConnection()){
-	        	statement = conn.prepareStatement("SELECT ban_id FROM `BAT_ban` WHERE ban_state = 1 AND UUID = ? AND ban_server = '" + GLOBAL_SERVER + "';");
-	        	// If this is an online mode server, the uuid will be already set
-	        	if(ev.getConnection().getUniqueId() != null  && ProxyServer.getInstance().getConfig().isOnlineMode()){
-	        		uuid = ev.getConnection().getUniqueId().toString().replaceAll( "-", "" );
-	        	}
-	        	// Otherwise it's an offline mode server, so we're gonna generate the UUID using player name (hashing)
-	        	else{
-	        		uuid = Utils.getOfflineUUID(ev.getConnection().getName());
-	        	}
-	            statement.setString(1, uuid);
+                PreparedStatement statement = null;
+                ResultSet resultSet = null;
+                String uuid;
+                try (Connection conn = BAT.getConnection()) {
+                    statement = conn.prepareStatement("SELECT ban_id FROM `BAT_ban` WHERE ban_state = 1 AND UUID = ? AND ban_server = '" + GLOBAL_SERVER + "';");
+                    // If this is an online mode server, the uuid will be already set
+                    if (ev.getConnection().getUniqueId() != null && ProxyServer.getInstance().getConfig().isOnlineMode()) {
+                        uuid = ev.getConnection().getUniqueId().toString().replaceAll("-", "");
+                    }
+                    // Otherwise it's an offline mode server, so we're gonna generate the UUID using player name (hashing)
+                    else {
+                        uuid = Utils.getOfflineUUID(ev.getConnection().getName());
+                    }
+                    statement.setString(1, uuid);
 
-	            resultSet = statement.executeQuery();
-	            if (resultSet.next()){
-	              isBanPlayer = true;
-	            }
-	        } catch (SQLException e) {
-	        	DataSourceHandler.handleException(e);
-	        } finally {
-	          DataSourceHandler.close(statement, resultSet);
-	        }
+                    resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        isBanPlayer = true;
+                    }
+                } catch (SQLException e) {
+                    DataSourceHandler.handleException(e);
+                } finally {
+                    DataSourceHandler.close(statement, resultSet);
+                }
 
-	        if ((isBanPlayer) || (isBan(ev.getConnection().getAddress().getAddress().getHostAddress(), GLOBAL_SERVER))) {
-	          BaseComponent[] bM = getBanMessage(ev.getConnection(), GLOBAL_SERVER);
-	          ev.setCancelReason(bM);
-	          ev.setCancelled(true);
-	        }
-	        ev.completeIntent(plugin);
-	      }
-	    });
-	}
+                if ((isBanPlayer) || (isBan(ev.getConnection().getAddress().getAddress().getHostAddress(), GLOBAL_SERVER))) {
+                    BaseComponent[] bM = getBanMessage(ev.getConnection(), GLOBAL_SERVER);
+                    ev.setCancelReason(bM);
+                    ev.setCancelled(true);
+                }
+                ev.completeIntent(plugin);
+            }
+        });
+    }
 }

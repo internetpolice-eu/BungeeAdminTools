@@ -30,240 +30,233 @@ import fr.Alphart.BAT.Modules.Core.CoreCommand;
 import fr.Alphart.BAT.Utils.UUIDNotFoundException;
 
 public abstract class BATCommand extends net.md_5.bungee.api.plugin.Command implements TabExecutor {
-	private static final Pattern pattern = Pattern.compile("<.*?>");
-	private final String name;
-	private final String syntax;
-	private final String description;
-	private final String permission;
-	private boolean runAsync = false;
-	private boolean coreCommand = false;
+    private static final Pattern pattern = Pattern.compile("<.*?>");
+    private final String name;
+    private final String syntax;
+    private final String description;
+    private final String permission;
+    private boolean runAsync = false;
+    private boolean coreCommand = false;
 
-	private BAT plugin;
+    private BAT plugin;
 
-	@Setter
-	private int minArgs = 0;
+    @Setter
+    private int minArgs = 0;
 
-	/**
-	 * Constructor
-	 * 
-	 * @param name
-	 *            name of this command
-	 * @param description
-	 *            description of this command
-	 * @param permission
-	 *            permission required to use this commands
-	 * @param aliases
-	 *            aliases of this commnad (optionnal)
-	 */
-	public BATCommand(final String name, final String syntax, final String description, final String permission,
-			final String... aliases) {
-		super(name, null, aliases); // Use own permission system
-		this.name = name;
-		this.syntax = syntax;
-		this.permission = permission;
-		this.description = description;
+    /**
+     * Constructor
+     *
+     * @param name        name of this command
+     * @param description description of this command
+     * @param permission  permission required to use this commands
+     * @param aliases     aliases of this commnad (optionnal)
+     */
+    public BATCommand(final String name, final String syntax, final String description, final String permission,
+                      final String... aliases) {
+        super(name, null, aliases); // Use own permission system
+        this.name = name;
+        this.syntax = syntax;
+        this.permission = permission;
+        this.description = description;
 
-		
-		// Compute min args
-		final Matcher matcher = pattern.matcher(syntax);
-		while (matcher.find()) {
-			minArgs++;
-		}
 
-		final RunAsync asyncAnnot = getClass().getAnnotation(RunAsync.class);
-		if (asyncAnnot != null) {
-			runAsync = true;
-		}
-		
-		if(CoreCommand.class.equals(getClass().getEnclosingClass())){
-			coreCommand = true;
-		}
-	}
+        // Compute min args
+        final Matcher matcher = pattern.matcher(syntax);
+        while (matcher.find()) {
+            minArgs++;
+        }
 
-	public String getDescription() {
-		return description;
-	}
+        final RunAsync asyncAnnot = getClass().getAnnotation(RunAsync.class);
+        if (asyncAnnot != null) {
+            runAsync = true;
+        }
 
-	public String getUsage() {
-		final String usage = Joiner.on(' ').join(name, syntax, description);
-		return usage;
-	}
+        if (CoreCommand.class.equals(getClass().getEnclosingClass())) {
+            coreCommand = true;
+        }
+    }
 
-	public String getSyntax(){
-		return syntax;
-	}
-	
-	/**
-	 * Get a nice coloured usage
-	 * 
-	 * @return coloured usage
-	 */
-	public String getFormatUsage() {
-		return ChatColor.translateAlternateColorCodes('&', "&e" + name + " &6" + syntax + " &f-&B " + description);
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public String getBATPermission(){
-		return permission;
-	}
-	
-	public void handleCommandException(final CommandSender sender, final Exception exception){
-		if(exception instanceof IllegalArgumentException){
-			if (exception.getMessage() == null) {
-				if(coreCommand){
-					// Just need to add the /bat if it's a core command
-					sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[] { "&e/bat " + getFormatUsage() }));
-				}else{
-					sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[] { "&e/" + getFormatUsage() }));
-				}
-			} else if (tr_("noPerm").equals(exception.getMessage())) {
-				sender.sendMessage(tr__("noPerm"));
-			} else {
-				sender.sendMessage(I18n.tr__("invalidArgs", new String[] { exception.getMessage() }));
-			}
-		}
-		else if(exception instanceof UUIDNotFoundException){
-			sender.sendMessage(I18n.tr__("invalidArgs", new String[] { I18n.tr_("cannotGetUUID", new String[] { ((UUIDNotFoundException)exception).getInvolvedPlayer() }) }));
-		}
-		else if(exception instanceof MissingResourceException){
-			sender.sendMessage(BAT.__("&cAn error occured with the translation. Key involved : &a" + ((MissingResourceException)exception).getKey()));
-		}else{
-			sender.sendMessage(BAT.__("A command errror happens ! Please check the console."));
-			BAT.getInstance().getLogger().severe("A command errror happens ! Please report this stacktrace :");
-			exception.printStackTrace();
-		}
-	}
-	
-	@Override
-	public void execute(final CommandSender sender, final String[] args) {
-		// If the sender doesn't have the permission, we're gonna check if he has this permission with children permission
-		// Example : in this plugin, if the sender has "bat.ban.server1", he also has "bat.ban"
-		if(!(permission == null || sender.hasPermission(permission) || sender.hasPermission("bat.admin")
-				|| (sender.hasPermission("bat.grantall.global") && permission.endsWith("global")))){
-			boolean hasPerm = false;
-			for(final String perm : sender.getPermissions()){
-				// The grantall give acces to all command (used when command is executed, but the plugin check in the command if the sender can execute this action)
-				// except the /bat ... commands
-				if(perm.toLowerCase().startsWith(permission)){
-					hasPerm = true;
-					break;
-				}
-				// The global grantall perm has already been checked before
-				if (!coreCommand && perm.toLowerCase().startsWith("bat.grantall") && !permission.endsWith("global")) {
-					// We're going to check if there is no perm to cancel (using -)
-					final String searchedPattern = "-" + permission;
-					boolean permFound = false;
-					for(final String perm2 : sender.getPermissions()){
-						if(perm2.toLowerCase().startsWith(searchedPattern)){
-							permFound = true;
-							break;
-						}
-					}
-					if(permFound){
-						hasPerm = false;
-					}
-					else{
-						hasPerm = true;
-						break;
-					}
-				}
-			}
-			if(!hasPerm){
-				sender.sendMessage(tr__("noPerm"));
-				return;
-			}
-		}
-		
-		// Check for the -s parameters to silent the output of the command i.e no broadcast
-		final String[] parsedArgs;
-		final boolean broadcast;
-		if(args.length > 0 && args[0].equals("-s")){
-		  broadcast = false;
-		  parsedArgs = new String[args.length-1];
-		  System.arraycopy(args, 1, parsedArgs, 0, args.length-1);
-		}else{
-		  broadcast = true;
-		  parsedArgs = args;
-		}
-		
-		// Overrides command to confirm if /bat confirm is disabled
-		final boolean confirmedCmd = (BAT.getInstance().getConfiguration().isConfirmCommand()) ? CommandQueue.isExecutingQueueCommand(sender) : true;
-		try {
-			Preconditions.checkArgument(args.length >= minArgs);
-			if (runAsync) {
-				ProxyServer.getInstance().getScheduler().runAsync(BAT.getInstance(), new Runnable() {
-					@Override
-					public void run() {
-						try {
-							onCommand(sender, parsedArgs, confirmedCmd, broadcast);
-						} catch (final Exception exception) {
-							handleCommandException(sender, exception);
-						} 
-					}
-				});
-			} else {
-				onCommand(sender, parsedArgs, confirmedCmd, broadcast);
-			}
-		} catch (final Exception exception) {
-			handleCommandException(sender, exception);
-		}
-		if (confirmedCmd) {
-			CommandQueue.removeFromExecutingQueueCommand(sender);
-		}
-	}
+    public String getUsage() {
+        final String usage = Joiner.on(' ').join(name, syntax, description);
+        return usage;
+    }
 
-	@Override
-	public Iterable<String> onTabComplete(final CommandSender sender, final String[] args) {
-		final List<String> result = new ArrayList<>();
-		if (args.length == 0) {
-			sender.sendMessage(BAT.__("Add the first letter to autocomplete"));
-			return result;
-		}
-		final String playerToCheck = args[args.length - 1];
-		if (playerToCheck.length() > 0) {
+    public String getSyntax() {
+        return syntax;
+    }
+
+    /**
+     * Get a nice coloured usage
+     *
+     * @return coloured usage
+     */
+    public String getFormatUsage() {
+        return ChatColor.translateAlternateColorCodes('&', "&e" + name + " &6" + syntax + " &f-&B " + description);
+    }
+
+    public String getBATPermission() {
+        return permission;
+    }
+
+    public void handleCommandException(final CommandSender sender, final Exception exception) {
+        if (exception instanceof IllegalArgumentException) {
+            if (exception.getMessage() == null) {
+                if (coreCommand) {
+                    // Just need to add the /bat if it's a core command
+                    sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[]{"&e/bat " + getFormatUsage()}));
+                } else {
+                    sender.sendMessage(I18n.tr__("invalidArgsUsage", new String[]{"&e/" + getFormatUsage()}));
+                }
+            } else if (tr_("noPerm").equals(exception.getMessage())) {
+                sender.sendMessage(tr__("noPerm"));
+            } else {
+                sender.sendMessage(I18n.tr__("invalidArgs", new String[]{exception.getMessage()}));
+            }
+        } else if (exception instanceof UUIDNotFoundException) {
+            sender.sendMessage(I18n.tr__("invalidArgs", new String[]{I18n.tr_("cannotGetUUID", new String[]{((UUIDNotFoundException) exception).getInvolvedPlayer()})}));
+        } else if (exception instanceof MissingResourceException) {
+            sender.sendMessage(BAT.__("&cAn error occured with the translation. Key involved : &a" + ((MissingResourceException) exception).getKey()));
+        } else {
+            sender.sendMessage(BAT.__("A command errror happens ! Please check the console."));
+            BAT.getInstance().getLogger().severe("A command errror happens ! Please report this stacktrace :");
+            exception.printStackTrace();
+        }
+    }
+
+    @Override
+    public void execute(final CommandSender sender, final String[] args) {
+        // If the sender doesn't have the permission, we're gonna check if he has this permission with children permission
+        // Example : in this plugin, if the sender has "bat.ban.server1", he also has "bat.ban"
+        if (!(permission == null || sender.hasPermission(permission) || sender.hasPermission("bat.admin")
+            || (sender.hasPermission("bat.grantall.global") && permission.endsWith("global")))) {
+            boolean hasPerm = false;
+            for (final String perm : sender.getPermissions()) {
+                // The grantall give acces to all command (used when command is executed, but the plugin check in the command if the sender can execute this action)
+                // except the /bat ... commands
+                if (perm.toLowerCase().startsWith(permission)) {
+                    hasPerm = true;
+                    break;
+                }
+                // The global grantall perm has already been checked before
+                if (!coreCommand && perm.toLowerCase().startsWith("bat.grantall") && !permission.endsWith("global")) {
+                    // We're going to check if there is no perm to cancel (using -)
+                    final String searchedPattern = "-" + permission;
+                    boolean permFound = false;
+                    for (final String perm2 : sender.getPermissions()) {
+                        if (perm2.toLowerCase().startsWith(searchedPattern)) {
+                            permFound = true;
+                            break;
+                        }
+                    }
+                    if (permFound) {
+                        hasPerm = false;
+                    } else {
+                        hasPerm = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasPerm) {
+                sender.sendMessage(tr__("noPerm"));
+                return;
+            }
+        }
+
+        // Check for the -s parameters to silent the output of the command i.e no broadcast
+        final String[] parsedArgs;
+        final boolean broadcast;
+        if (args.length > 0 && args[0].equals("-s")) {
+            broadcast = false;
+            parsedArgs = new String[args.length - 1];
+            System.arraycopy(args, 1, parsedArgs, 0, args.length - 1);
+        } else {
+            broadcast = true;
+            parsedArgs = args;
+        }
+
+        // Overrides command to confirm if /bat confirm is disabled
+        final boolean confirmedCmd = (BAT.getInstance().getConfiguration().isConfirmCommand()) ? CommandQueue.isExecutingQueueCommand(sender) : true;
+        try {
+            Preconditions.checkArgument(args.length >= minArgs);
+            if (runAsync) {
+                ProxyServer.getInstance().getScheduler().runAsync(BAT.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            onCommand(sender, parsedArgs, confirmedCmd, broadcast);
+                        } catch (final Exception exception) {
+                            handleCommandException(sender, exception);
+                        }
+                    }
+                });
+            } else {
+                onCommand(sender, parsedArgs, confirmedCmd, broadcast);
+            }
+        } catch (final Exception exception) {
+            handleCommandException(sender, exception);
+        }
+        if (confirmedCmd) {
+            CommandQueue.removeFromExecutingQueueCommand(sender);
+        }
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(final CommandSender sender, final String[] args) {
+        final List<String> result = new ArrayList<>();
+        if (args.length == 0) {
+            sender.sendMessage(BAT.__("Add the first letter to autocomplete"));
+            return result;
+        }
+        final String playerToCheck = args[args.length - 1];
+        if (playerToCheck.length() > 0) {
             for (final ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
                 if (player
-                        .getName()
-                        .substring(
-                                0,
-                                (playerToCheck.length() < player.getName().length()) ? playerToCheck.length() : player
-                                    .getName().length()).equalsIgnoreCase(playerToCheck)) {
+                    .getName()
+                    .substring(
+                        0,
+                        (playerToCheck.length() < player.getName().length()) ? playerToCheck.length() : player
+                            .getName().length()).equalsIgnoreCase(playerToCheck)) {
                     result.add(player.getName());
                 }
             }
-		}
-		return result;
-	}
+        }
+        return result;
+    }
 
-	public abstract void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
-			throws IllegalArgumentException;
+    public abstract void onCommand(final CommandSender sender, final String[] args, final boolean confirmedCmd, boolean broadcast)
+        throws IllegalArgumentException;
 
-	/**
-	 * Use this annotation onCommand if the command need to be runned async
-	 */
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.TYPE)
-	public @interface RunAsync {
-	}
+    /**
+     * Use this annotation onCommand if the command need to be runned async
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface RunAsync {
+    }
 
-	/**
-	 * Use this annotation to disable a command
-	 */
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target(ElementType.TYPE)
-	public @interface Disable {
-	}
-	
-	/* Utils for command */
-	public void mustConfirmCommand(final CommandSender sender, final String command, final String message) {
-		final String cmdToConfirm = (BAT.getInstance().getConfiguration().getSimpleAliasesCommands().get("confirm"))
-		        ? "confirm" : "bat confirm";
-		if (!CommandQueue.isExecutingQueueCommand(sender)) {
-			if ("".equals(message)) {
-				sender.sendMessage(I18n.tr__("mustConfirm", new String[] { "", cmdToConfirm }));
-			} else {
-				sender.sendMessage(I18n.tr__("mustConfirm", new String[] { "&e"+message, cmdToConfirm }));
-			}
-			CommandQueue.queueCommand(sender, command);
-		}
-	}
+    /**
+     * Use this annotation to disable a command
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface Disable {
+    }
+
+    /* Utils for command */
+    public void mustConfirmCommand(final CommandSender sender, final String command, final String message) {
+        final String cmdToConfirm = (BAT.getInstance().getConfiguration().getSimpleAliasesCommands().get("confirm"))
+            ? "confirm" : "bat confirm";
+        if (!CommandQueue.isExecutingQueueCommand(sender)) {
+            if ("".equals(message)) {
+                sender.sendMessage(I18n.tr__("mustConfirm", new String[]{"", cmdToConfirm}));
+            } else {
+                sender.sendMessage(I18n.tr__("mustConfirm", new String[]{"&e" + message, cmdToConfirm}));
+            }
+            CommandQueue.queueCommand(sender, command);
+        }
+    }
 }
