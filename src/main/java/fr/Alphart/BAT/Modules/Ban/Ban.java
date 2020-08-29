@@ -1,5 +1,10 @@
 package fr.Alphart.BAT.Modules.Ban;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -182,6 +187,19 @@ public class Ban implements IModule, Listener {
         return false;
     }
 
+    public boolean isBan(InetAddress inetAddress, String server) {
+        if (inetAddress instanceof Inet4Address) {
+            return isBan(inetAddress.getHostAddress(), server);
+        }
+
+        // IPv6 addresses contain a Scope ID (delimited by %), that should be stripped away:
+        if (inetAddress instanceof Inet6Address) {
+            return isBan(inetAddress.getHostAddress().split("%")[0], server);
+        }
+
+        return false;
+    }
+
     /**
      * Check if this entity (player or ip) is banned
      *
@@ -192,6 +210,7 @@ public class Ban implements IModule, Listener {
     public boolean isBan(final String bannedEntity, final String server) {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
+
         try (Connection conn = BAT.getConnection()) {
             // If this is an ip which may be banned
             if (Utils.validIP(bannedEntity)) {
@@ -203,6 +222,12 @@ public class Ban implements IModule, Listener {
                     statement.setString(2, server);
                 }
             }
+
+            // If this is an IPv6 address which may be banned:
+            else if (Utils.isIp6(bannedEntity)) {
+                return false; // TODO: Actually implements checks here
+            }
+
             // If this is a player which may be banned
             else {
                 final String pName = bannedEntity;
@@ -606,7 +631,12 @@ public class Ban implements IModule, Listener {
                     DataSourceHandler.close(statement, resultSet);
                 }
 
-                if ((isBanPlayer) || (isBan(ev.getConnection().getAddress().getAddress().getHostAddress(), GLOBAL_SERVER))) {
+                boolean isBanIp = false;
+                if (ev.getConnection().getSocketAddress() instanceof InetSocketAddress) {
+                    isBanIp = isBan(((InetSocketAddress) ev.getConnection().getSocketAddress()).getAddress(), GLOBAL_SERVER);
+                }
+
+                if (isBanPlayer || isBanIp) {
                     BaseComponent[] bM = getBanMessage(ev.getConnection(), GLOBAL_SERVER);
                     ev.setCancelReason(bM);
                     ev.setCancelled(true);

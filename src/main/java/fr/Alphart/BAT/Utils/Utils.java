@@ -3,6 +3,7 @@ package fr.Alphart.BAT.Utils;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Calendar;
@@ -18,13 +19,15 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import com.google.common.base.Charsets;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 public class Utils {
     private static Gson gson = new Gson();
     private static StringBuilder sb = new StringBuilder();
-    private static String ipRegex = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
-    private static Pattern exactIpPattern = Pattern.compile(ipRegex);
-    private static Pattern containIpPattern = Pattern.compile("(.*?)(" + ipRegex + ")(.*)");
+    private static String ip4Pattern = "(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+    private static Pattern ip6Pattern = Pattern.compile("([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])");
+    private static Pattern exactIpPattern = Pattern.compile(ip4Pattern);
+    private static Pattern containIpPattern = Pattern.compile("(.*?)(" + ip4Pattern + ")(.*)");
     private final static Pattern timePattern = Pattern.compile("(?:([0-9]+)\\s*y[a-z]*[,\\s]*)?"
         + "(?:([0-9]+)\\s*mo[a-z]*[,\\s]*)?" + "(?:([0-9]+)\\s*w[a-z]*[,\\s]*)?"
         + "(?:([0-9]+)\\s*d[a-z]*[,\\s]*)?" + "(?:([0-9]+)\\s*h[a-z]*[,\\s]*)?" + "(?:([0-9]+)\\s*m[a-z]*[,\\s]*)?"
@@ -139,12 +142,19 @@ public class Utils {
         return ProxyServer.getInstance().getServers().containsKey(serverName);
     }
 
-    public static String getPlayerIP(final ProxiedPlayer player) {
-        return player.getAddress().getAddress().getHostAddress();
+    public static String getPlayerIP(ProxiedPlayer player) {
+        if (player.getSocketAddress() instanceof InetSocketAddress) {
+            return ((InetSocketAddress) player.getSocketAddress()).getAddress().getHostAddress().split("%")[0];
+        }
+        return "0.0.0.0";
     }
 
     public static boolean validIP(final String ip) {
         return exactIpPattern.matcher(ip).matches();
+    }
+
+    public static boolean isIp6(@NotNull String ip6) {
+        return ip6Pattern.matcher(ip6).matches();
     }
 
     public static String extractIpFromString(final String string) {

@@ -192,11 +192,10 @@ public class Core implements IModule, Listener {
     }
 
     /**
-     * Update the IP and UUID of a player in the database
-     *
-     * @param player
+     * Updates the IP and UUID of the given {@link ProxiedPlayer} in the database.
+     * @param player ProxiedPlayer to update
      */
-    public void updatePlayerIPandUUID(final ProxiedPlayer player) {
+    public void updatePlayerIPandUUID(ProxiedPlayer player) {
         PreparedStatement statement = null;
         try (Connection conn = BAT.getConnection()) {
             final String ip = Utils.getPlayerIP(player);
