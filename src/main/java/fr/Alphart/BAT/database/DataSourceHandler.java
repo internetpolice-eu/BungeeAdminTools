@@ -53,7 +53,7 @@ public class DataSourceHandler {
             int intOffset = Calendar.getInstance().getTimeZone().getOffset(Calendar.getInstance().getTimeInMillis()) / 1000;
             String offset = String.format("%02d:%02d", Math.abs(intOffset / 3600), Math.abs((intOffset / 60) % 60));
             offset = (intOffset >= 0 ? "+" : "-") + offset;
-            conn.createStatement().executeQuery("SET time_zone='" + offset + "';");
+            conn.createStatement().executeUpdate("SET time_zone='" + offset + "';");
             conn.close();
         } catch (final SQLException e) {
             plugin.getLogger().severe("BAT encounters a problem during the initialization of the database connection.");
