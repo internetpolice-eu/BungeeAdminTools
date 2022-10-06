@@ -6,7 +6,7 @@
     <name>BungeeAdminTools</name>
 
     <description>Bungee plugin which handles ban, mute and kick management</description>
-    <version>1.6.1-SNAPSHOT</version>
+    <version>1.7.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.15-SNAPSHOT</version>
+            <version>1.16-R0.4</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -43,26 +43,29 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version> <!-- .12 -->
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
-        <!-- BoneCP and sql drivers -->
+
+        <!-- HikariCP and MySQL driver -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>3.4.3</version>
+            <version>5.0.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.20</version>
+            <version>8.0.30</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- JetBrains annotations -->
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>20.0.0</version>
+            <version>23.0.0</version>
         </dependency>
 
         <!-- Apache HttpComponents -->
@@ -115,9 +118,17 @@
                             <artifactSet>
                             </artifactSet>
                             <relocations>
-                                <relocation>
+                                <relocation> <!-- Apache HTTP components -->
                                     <pattern>org.apache.hc</pattern>
                                     <shadedPattern>fr.Alphart.BAT.shaded.apache.hc</shadedPattern>
+                                </relocation>
+                                <relocation> <!-- HikariCP -->
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>fr.Alphart.BAT.shaded.hikari</shadedPattern>
+                                </relocation>
+                                <relocation> <!-- MySQL driver -->
+                                    <pattern>com.mysql</pattern>
+                                    <shadedPattern>fr.Alphart.BAT.shaded.db.mysql</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
