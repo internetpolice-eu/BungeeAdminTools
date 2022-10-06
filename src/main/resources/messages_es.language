@@ -67,7 +67,6 @@ playerLookup=&f---- &9Búsqueda &b{player} &f----\n\
 ¤¤¤¤¤¤¤¤¤¤¤¤&a{kicks_number} expulsiones\n\
 &eÚltimos tres comentarios : \n\
 ¤¤&a{last_comments:3}\n\
-&eHistorial de nombres de jugador : &a{name_history_list}\n\
 &eUUID : &a{uuid}\n\
 &f---- &9Búsqueda &b{player} &f----
 # END of the player lookup message

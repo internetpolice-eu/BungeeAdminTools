@@ -67,7 +67,6 @@ playerLookup=&f---- &9Statisiken &b{player} &f----\n\
 ¤¤¤¤¤¤¤¤¤¤¤¤&a{kicks_number} kicks\n\
 &eLetzten drei Bemerkungen: \n\
 ¤¤&a{last_comments:3}\n\
-&eVergangene Namen : &a{name_history_list}\n\
 &eUUID : &a{uuid}\n\
 &eGleiche IP Spieler: &3{ip_users}\n\
 &f---- &9Statistiken &b{player} &f----

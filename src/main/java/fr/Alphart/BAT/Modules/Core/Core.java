@@ -80,7 +80,6 @@ public class Core implements IModule, Listener {
             });
     private final String name = "core";
     private List<BATCommand> cmds;
-    private Gson gson = new Gson();
     public static EnhancedDateFormat defaultDF = new EnhancedDateFormat(false);
 
     @Override
